@@ -1,0 +1,76 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Debug AdventOfCode",
+            "program": "${workspaceFolder:aoc2024}/.build/debug/AdventOfCode",
+            "preLaunchTask": "swift: Build Debug AdventOfCode"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Release AdventOfCode",
+            "program": "${workspaceFolder:aoc2024}/.build/release/AdventOfCode",
+            "preLaunchTask": "swift: Build Release AdventOfCode"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Debug AdventOfCodeMain",
+            "program": "${workspaceFolder:aoc2024}/.build/debug/AdventOfCodeMain",
+            "preLaunchTask": "swift: Build Debug AdventOfCodeMain"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Release AdventOfCodeMain",
+            "program": "${workspaceFolder:aoc2024}/.build/release/AdventOfCodeMain",
+            "preLaunchTask": "swift: Build Release AdventOfCodeMain"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Debug AdventOfCode2024Main",
+            "program": "${workspaceFolder:aoc2024}/.build/debug/AdventOfCode2024Main",
+            "preLaunchTask": "swift: Build Debug AdventOfCode2024Main"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Release AdventOfCode2024Main",
+            "program": "${workspaceFolder:aoc2024}/.build/release/AdventOfCode2024Main",
+            "preLaunchTask": "swift: Build Release AdventOfCode2024Main"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Debug Main",
+            "program": "${workspaceFolder:aoc2024}/.build/debug/Main",
+            "preLaunchTask": "swift: Build Debug Main"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:aoc2024}",
+            "name": "Release Main",
+            "program": "${workspaceFolder:aoc2024}/.build/release/Main",
+            "preLaunchTask": "swift: Build Release Main"
+        }
+    ]
+}

@@ -1,27 +1,30 @@
 // swift-tools-version:5.5
-
-import 
-PackageDescription
+import PackageDescription
 
 let package = Package(
-    name: "AdventOfCode",
+    name: "AdventOfCode2024",
     platforms: [
         .macOS(.v10_15)
     ],
     products: [
         .executable(
-            name: "AdventOfCode",
-            targets: ["AdventOfCode"])
+            name: "Main",
+            targets: ["Main"]
+        ),
+        .library(
+            name: "Day01",
+            targets: ["Day01"]
+        ),
     ],
-    dependencies: [
-        // Add any dependencies here
-    ],
+    dependencies: [],
     targets: [
+        .target(
+            name: "Day01",
+            dependencies: []
+        ),
         .executableTarget(
-            name: "AdventOfCode",
-            dependencies: [],
-            path: "Sources",
-            sources: ["main.swift", "1.swift", "2.swift"]  // Add all your day files here
-        )
+            name: "Main",
+            dependencies: ["Day01"]
+        ),
     ]
 )
