@@ -1,6 +1,7 @@
 import Foundation
 
 import Day01
+import Day02
 
 // Console log "Welcome to Advent of Code 2024!" with emojis
 print("🎄🎅 Welcome to Advent of Code 2024! 🎅🎄")
@@ -18,7 +19,9 @@ func runDay(_ day: Int) {
     case 1:
         print("Solution day 1, part 1: ", Day01.solvePart1())
         print("Solution day 1, part 2: ", Day01.solvePart2())
-    // Add more cases for each day
+    case 2:
+        print("Solution day 2, part 1: ", Day02.solvePart1())
+        print("Solution day 2, part 2: ", Day02.solvePart2())
     default:
         print("❌ Day \(day) is not implemented yet. ❌")
     }
