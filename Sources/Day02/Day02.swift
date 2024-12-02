@@ -1,4 +1,26 @@
+import DayUtils
 import Foundation
+
+public struct Day02: Day {
+    public static func solvePart1(_ input: String) -> Int {
+        let reports = parseInput(input)
+        return reports.count { report in reportIsSafe(report) }
+    }
+
+    public static func solvePart2(_ input: String) -> Int {
+        let reports = parseInput(input)
+        return reports.count { report in reportIsSafeWithSlack(report) }
+    }
+}
+
+public func parseInput(_ input: String) -> [[Int]] {
+    let lines = input.split(separator: "\n")
+    let reports = lines.map { line in
+        return line.split(separator: " ").compactMap { Int($0) }
+    }
+
+    return reports
+}
 
 func getSign(_ a: Int, _ b: Int) -> Int {
     return (a - b) > 0 ? 1 : -1
@@ -27,30 +49,4 @@ func reportIsSafeWithSlack(_ report: [Int]) -> Bool {
     return false
 }
 
-public struct Day02 {
-    public static func solvePart1() -> Int {
-        let reports = readInput()
-        return reports.count { report in reportIsSafe(report) }
-    }
 
-    public static func solvePart2() -> Int {
-        let reports = readInput()
-        return reports.count { report in reportIsSafeWithSlack(report) }
-    }
-}
-
-public func readInput() -> [[Int]] {
-    do {
-        let input = try String(
-            contentsOf: URL(fileURLWithPath: "./Input/Day02/input"), encoding: .utf8)
-        let lines = input.split(separator: "\n")
-        let reports = lines.map { line in
-            return line.split(separator: " ").compactMap { Int($0) }
-        }
-
-        return reports
-    } catch {
-        print("Error reading file: \(error)")
-        return []
-    }
-}

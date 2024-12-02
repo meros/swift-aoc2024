@@ -1,33 +1,42 @@
-import Foundation
-
 import Day01
 import Day02
+import DayUtils
+import Foundation
 
-// Console log "Welcome to Advent of Code 2024!" with emojis
 print("🎄🎅 Welcome to Advent of Code 2024! 🎅🎄")
 
-// Function to get the current day
 func getCurrentDay() -> Int {
     let date = Date()
     let calendar = Calendar.current
     return calendar.component(.day, from: date)
 }
 
-// Function to run the specific day's code
 func runDay(_ day: Int) {
+    let dayImplementation: Day.Type?
     switch day {
     case 1:
-        print("Solution day 1, part 1: ", Day01.solvePart1())
-        print("Solution day 1, part 2: ", Day01.solvePart2())
+        dayImplementation = Day01.self
     case 2:
-        print("Solution day 2, part 1: ", Day02.solvePart1())
-        print("Solution day 2, part 2: ", Day02.solvePart2())
+        dayImplementation = Day02.self
     default:
-        print("❌ Day \(day) is not implemented yet. ❌")
+        dayImplementation = nil
+    }
+
+    guard let unwrappedDayImplementation = dayImplementation else {
+        print("Day \(day) not implemented yet.")
+        return
+    }
+
+    let url = URL(fileURLWithPath: String(format: "./Input/Day%02d/input", day))
+    do {
+        let input = try String(contentsOf: url)
+        print("Solution day \(day), part 1: \(unwrappedDayImplementation.solvePart1(input))")
+        print("Solution day \(day), part 2: \(unwrappedDayImplementation.solvePart2(input))")
+    } catch {
+        print("Error reading input for day \(day): \(error)")
     }
 }
 
-// Check for command-line arguments
 let arguments = CommandLine.arguments
 let day: Int
 
@@ -37,5 +46,4 @@ if arguments.count > 1, let inputDay = Int(arguments[1]) {
     day = getCurrentDay()
 }
 
-// Run the specific day's code
 runDay(day)

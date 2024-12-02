@@ -12,6 +12,10 @@ let package = Package(
             targets: ["Main"]
         ),
         .library(
+            name: "DayUtils",
+            targets: ["DayUtils"]
+        ),
+        .library(
             name: "Day01",
             targets: ["Day01"]
         ),
@@ -24,11 +28,14 @@ let package = Package(
     targets: [
         .target(
             name: "Day01",
-            dependencies: []
+            dependencies: ["DayUtils"]
         ),
         .target(
             name: "Day02",
-            dependencies: []
+            dependencies: ["DayUtils"]
+        ),
+        .target(
+            name: "DayUtils"
         ),
         .executableTarget(
             name: "Main",
