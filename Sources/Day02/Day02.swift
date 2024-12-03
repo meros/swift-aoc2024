@@ -48,5 +48,3 @@ func reportIsSafeWithSlack(_ report: [Int]) -> Bool {
 
     return false
 }
-
-

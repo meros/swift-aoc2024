@@ -23,6 +23,10 @@ let package = Package(
             name: "Day02",
             targets: ["Day02"]
         ),
+        .library(
+            name: "Day03",
+            targets: ["Day03"]
+        ),
     ],
     dependencies: [],
     targets: [
@@ -35,11 +39,15 @@ let package = Package(
             dependencies: ["DayUtils"]
         ),
         .target(
+            name: "Day03",
+            dependencies: ["DayUtils"]
+        ),
+        .target(
             name: "DayUtils"
         ),
         .executableTarget(
             name: "Main",
-            dependencies: ["Day01", "Day02"]
+            dependencies: ["Day01", "Day02", "Day03"]
 
         ),
     ]

@@ -1,5 +1,6 @@
 import Day01
 import Day02
+import Day03
 import DayUtils
 import Foundation
 
@@ -18,6 +19,8 @@ func runDay(_ day: Int) {
         dayImplementation = Day01.self
     case 2:
         dayImplementation = Day02.self
+    case 3:
+        dayImplementation = Day03.self
     default:
         dayImplementation = nil
     }
