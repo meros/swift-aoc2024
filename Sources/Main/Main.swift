@@ -4,6 +4,14 @@ import Day03
 import DayUtils
 import Foundation
 
+var session = ""
+
+func readSessionFromFile() -> String? {
+    let fileURL = URL(fileURLWithPath: ".session")
+    return try? String(contentsOf: fileURL, encoding: .utf8).trimmingCharacters(
+        in: .whitespacesAndNewlines)
+}
+
 print("🎄🎅 Welcome to Advent of Code 2024! 🎅🎄")
 
 func getCurrentDay() -> Int {
@@ -12,7 +20,7 @@ func getCurrentDay() -> Int {
     return calendar.component(.day, from: date)
 }
 
-func runDay(_ day: Int) {
+func runDay(_ day: Int) async {
     let dayImplementation: Day.Type?
     switch day {
     case 1:
@@ -30,11 +38,16 @@ func runDay(_ day: Int) {
         return
     }
 
-    let url = URL(fileURLWithPath: String(format: "./Input/Day%02d/input", day))
     do {
-        let input = try String(contentsOf: url)
-        print("Solution day \(day), part 1: \(unwrappedDayImplementation.solvePart1(input))")
-        print("Solution day \(day), part 2: \(unwrappedDayImplementation.solvePart2(input))")
+        let input = try await getInput(day, session)
+
+        print(input)
+
+        let solutionPart1 = unwrappedDayImplementation.solvePart1(input)
+        let solutionPart2 = unwrappedDayImplementation.solvePart2(input)
+
+        print("Solution day \(day), part 1: \(solutionPart1)")
+        print("Solution day \(day), part 2: \(solutionPart2)")
     } catch {
         print("Error reading input for day \(day): \(error)")
     }
@@ -49,4 +62,11 @@ if arguments.count > 1, let inputDay = Int(arguments[1]) {
     day = getCurrentDay()
 }
 
-runDay(day)
+if let sessionFromFile = readSessionFromFile() {
+    session = sessionFromFile
+} else {
+    print("No session file found.")
+    exit(1)
+}
+
+await runDay(day)

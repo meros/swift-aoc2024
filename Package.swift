@@ -1,5 +1,8 @@
 // swift-tools-version:5.7
 import PackageDescription
+import Foundation
+
+let days = (1...3)
 
 let package = Package(
     name: "AdventOfCode2024",
@@ -15,40 +18,26 @@ let package = Package(
             name: "DayUtils",
             targets: ["DayUtils"]
         ),
-        .library(
-            name: "Day01",
-            targets: ["Day01"]
-        ),
-        .library(
-            name: "Day02",
-            targets: ["Day02"]
-        ),
-        .library(
-            name: "Day03",
-            targets: ["Day03"]
-        ),
-    ],
+    ]
+        + days.map { day in
+            .library(
+                name: String(format: "Day%02d", day),
+                targets: [String(format: "Day%02d", day)])
+        },
     dependencies: [],
     targets: [
-        .target(
-            name: "Day01",
-            dependencies: ["DayUtils"]
-        ),
-        .target(
-            name: "Day02",
-            dependencies: ["DayUtils"]
-        ),
-        .target(
-            name: "Day03",
-            dependencies: ["DayUtils"]
-        ),
         .target(
             name: "DayUtils"
         ),
         .executableTarget(
             name: "Main",
-            dependencies: ["Day01", "Day02", "Day03"]
-
+            dependencies: days.map { .target(name: String(format: "Day%02d", $0)) }
         ),
     ]
+        + days.map { day in
+            .target(
+                name: String(format: "Day%02d", day),
+                dependencies: ["DayUtils"]
+            )
+        }
 )
