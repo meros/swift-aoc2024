@@ -2,6 +2,7 @@ import Day01
 import Day02
 import Day03
 import Day04
+import Day05
 import DayUtils
 import Foundation
 
@@ -25,13 +26,15 @@ func runDay(_ day: Int) async {
   let dayImplementation: Day.Type?
   switch day {
   case 1:
-    dayImplementation = Day01.self
+    dayImplementation = Day01.Solution.self
   case 2:
-    dayImplementation = Day02.self
+    dayImplementation = Day02.Solution.self
   case 3:
-    dayImplementation = Day03.self
+    dayImplementation = Day03.Solution.self
   case 4:
-    dayImplementation = Day04.self
+    dayImplementation = Day04.Solution.self
+  case 5:
+    dayImplementation = Day05.Solution.self
   default:
     dayImplementation = nil
   }
