@@ -7,7 +7,7 @@ func parseInput(_ input: String) -> [[Substring.Element]] {
   }
 }
 
-public struct Day04: Day {
+public struct Solution: Day {
   public static func solvePart1(_ input: String) -> Int {
     let parsedInput = parseInput(input)
 

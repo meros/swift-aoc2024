@@ -27,7 +27,7 @@ func getZero(_ _: PatternType.Match) -> Int {
   return 0
 }
 
-public struct Day03: Day {
+public struct Solution: Day {
   public static func solvePart1(_ input: String) -> Int {
     input.matches(of: pattern).map(getProduct).reduce(0, +)
   }
