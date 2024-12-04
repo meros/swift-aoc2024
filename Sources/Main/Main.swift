@@ -3,7 +3,7 @@ import Day02
 import Day03
 import Day04
 import Day05
-import DayUtils
+import Utils
 import Foundation
 
 var session = ""

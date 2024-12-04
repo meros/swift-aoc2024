@@ -1,4 +1,4 @@
-import DayUtils
+import Utils
 import Foundation
 
 public func parseInput(_ input: String) -> [[Int]] {

@@ -1,4 +1,4 @@
-import DayUtils
+import Utils
 import Foundation
 
 typealias PatternType = Regex<
