@@ -15,8 +15,8 @@ let package = Package(
       targets: ["Main"]
     ),
     .library(
-      name: "DayUtils",
-      targets: ["DayUtils"]
+      name: "Utils",
+      targets: ["Utils"]
     ),
   ]
     + days.map { day in
@@ -27,7 +27,7 @@ let package = Package(
   dependencies: [],
   targets: [
     .target(
-      name: "DayUtils"
+      name: "Utils"
     ),
     .executableTarget(
       name: "Main",
@@ -37,7 +37,7 @@ let package = Package(
     + days.map { day in
       .target(
         name: String(format: "Day%02d", day),
-        dependencies: ["DayUtils"]
+        dependencies: ["Utils"]
       )
     }
 )
