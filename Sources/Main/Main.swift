@@ -1,6 +1,7 @@
 import Day01
 import Day02
 import Day03
+import Day04
 import DayUtils
 import Foundation
 
@@ -29,6 +30,8 @@ func runDay(_ day: Int) async {
         dayImplementation = Day02.self
     case 3:
         dayImplementation = Day03.self
+    case 4:
+        dayImplementation = Day04.self
     default:
         dayImplementation = nil
     }
@@ -40,8 +43,6 @@ func runDay(_ day: Int) async {
 
     do {
         let input = try await getInput(day, session)
-
-        print(input)
 
         let solutionPart1 = unwrappedDayImplementation.solvePart1(input)
         let solutionPart2 = unwrappedDayImplementation.solvePart2(input)
