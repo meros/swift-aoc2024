@@ -3,6 +3,7 @@ import Day02
 import Day03
 import Day04
 import Day05
+import Day06
 import Foundation
 import Utils
 
@@ -35,6 +36,8 @@ func runDay(_ day: Int) async {
     dayImplementation = Day04.Solution.self
   case 5:
     dayImplementation = Day05.Solution.self
+  case 6:
+    dayImplementation = Day06.Solution.self
   default:
     dayImplementation = nil
   }
@@ -45,13 +48,23 @@ func runDay(_ day: Int) async {
   }
 
   do {
-    let input = try await getInput(day, session)
+    let exampleInput = await getExampleInput(day)
+    if let exampleInput = exampleInput {
+      let exampleSolutionPart1 = unwrappedDayImplementation.solvePart1(exampleInput)
+      let exampleSolutionPart2 = unwrappedDayImplementation.solvePart2(exampleInput)
 
-    let solutionPart1 = unwrappedDayImplementation.solvePart1(input)
-    let solutionPart2 = unwrappedDayImplementation.solvePart2(input)
+      print("Example solution day \(day), part 1: \(exampleSolutionPart1)")
+      print("Example solution day \(day), part 2: \(exampleSolutionPart2)")
+    }
 
-    print("Solution day \(day), part 1: \(solutionPart1)")
-    print("Solution day \(day), part 2: \(solutionPart2)")
+    let input = await getInput(day, session)
+    if let input = input {
+      let solutionPart1 = unwrappedDayImplementation.solvePart1(input)
+      let solutionPart2 = unwrappedDayImplementation.solvePart2(input)
+
+      print("Solution day \(day), part 1: \(solutionPart1)")
+      print("Solution day \(day), part 2: \(solutionPart2)")
+    }
   } catch {
     print("Error reading input for day \(day): \(error)")
   }
