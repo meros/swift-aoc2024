@@ -1,5 +1,5 @@
-import Utils
 import Foundation
+import Utils
 
 func parseInput(_ input: String) -> [[Substring.Element]] {
   input.split(separator: "\n").map { line in
