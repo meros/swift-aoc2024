@@ -1,5 +1,5 @@
-import Utils
 import Foundation
+import Utils
 
 public func parseInput(_ input: String) -> [[Int]] {
   input.split(separator: "\n").map {

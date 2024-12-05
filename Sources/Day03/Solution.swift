@@ -1,5 +1,5 @@
-import Utils
 import Foundation
+import Utils
 
 typealias PatternType = Regex<
   (
