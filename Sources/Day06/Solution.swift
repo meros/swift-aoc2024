@@ -77,7 +77,7 @@ struct PositionWithDirection: PositionProtocol {
     y = y + directionMap[direction]!.1
   }
 
-  mutating func backUp() {
+  mutating func backUpAndTurn() {
     x = x - directionMap[direction]!.0
     y = y - directionMap[direction]!.1
     direction =
@@ -90,43 +90,44 @@ struct PositionWithDirection: PositionProtocol {
           : .up
 
   }
+
+  func asPosition() -> Position {
+    return Position(x: x, y: y)
+  }
 }
 
 public struct Solution: Day {
   public static func solvePart1(_ input: String) -> Int {
     let map = parseInput(input)
 
-    return walkMap(map)?.0 ?? 0
+    return walkMap(map).count + 1
   }
 
   public static func solvePart2(_ input: String) -> Int {
     var map = parseInput(input)
 
-    var loopingPositions = 0
+    let allPossiblePositions = walkMap(map)
 
-    let allPossiblePositions = walkMap(map)!.1
-
+    var numLoopingPositions = 0
     for position in allPossiblePositions {
-      if map.grid[position.x][position.y] == "." {
-        map.grid[position.x][position.y] = "#"
+      map.grid[position.x][position.y] = "#"
 
-        if checkInfinite(map) {
-          loopingPositions += 1
-        }
+      if checkInfinite(map) {
+        numLoopingPositions += 1
 
-        map.grid[position.x][position.y] = "."
       }
+
+      map.grid[position.x][position.y] = "."
     }
 
-    return loopingPositions
+    return numLoopingPositions
   }
 }
 
-func walkMap(_ map: Map) -> (Int, Set<Position>)? {
+func walkMap(_ map: Map) -> Set<Position> {
   var currentPosition = map.startingPosition
 
   // Start walking
-  var visitedPositionsWithDirection = Set<PositionWithDirection>()
   var visitedPositions = Set<Position>()
 
   while true {
@@ -136,19 +137,14 @@ func walkMap(_ map: Map) -> (Int, Set<Position>)? {
     if currentPosition.x < 0 || currentPosition.x >= map.gridSizeX || currentPosition.y < 0
       || currentPosition.y >= map.gridSizeY
     {
-      return (visitedPositions.count, visitedPositions)
+      return visitedPositions
     }
 
     if map.grid[currentPosition.x][currentPosition.y] == "#" {
-      currentPosition.backUp()
+      currentPosition.backUpAndTurn()
     }
 
-    if visitedPositionsWithDirection.contains(currentPosition) {
-      return nil
-    }
-
-    visitedPositionsWithDirection.insert(currentPosition)
-    visitedPositions.insert(Position(x: currentPosition.x, y: currentPosition.y))
+    visitedPositions.insert(currentPosition.asPosition())
   }
 }
 
@@ -156,7 +152,7 @@ func checkInfinite(_ map: Map) -> Bool {
   var currentPosition = map.startingPosition
 
   // Start walking
-  var visitedPositionsWithDirection = Set<PositionWithDirection>()
+  var turns = Set<PositionWithDirection>()
 
   while true {
     currentPosition.move()
@@ -169,13 +165,12 @@ func checkInfinite(_ map: Map) -> Bool {
     }
 
     if map.grid[currentPosition.x][currentPosition.y] == "#" {
-      currentPosition.backUp()
+      currentPosition.backUpAndTurn()
+      let result = turns.insert(currentPosition)
+      if !result.inserted {
+        return true
+      }
     }
 
-    if visitedPositionsWithDirection.contains(currentPosition) {
-      return true
-    }
-
-    visitedPositionsWithDirection.insert(currentPosition)
   }
 }
