@@ -52,20 +52,26 @@ func runDay(_ day: Int) async {
 
   let exampleInput = getExampleInput(day)
   if let exampleInput = exampleInput {
-    let exampleSolutionPart1 = unwrappedDayImplementation.solvePart1(exampleInput)
-    let exampleSolutionPart2 = unwrappedDayImplementation.solvePart2(exampleInput)
-
+    let exampleSolutionPart1 = await unwrappedDayImplementation.solvePart1(exampleInput)
     print("Example solution day \(day), part 1: \(exampleSolutionPart1)")
+
+    let exampleSolutionPart2 = await unwrappedDayImplementation.solvePart2(exampleInput)
     print("Example solution day \(day), part 2: \(exampleSolutionPart2)")
   }
 
   let input = await getInput(day, session)
   if let input = input {
-    let solutionPart1 = unwrappedDayImplementation.solvePart1(input)
-    let solutionPart2 = unwrappedDayImplementation.solvePart2(input)
+    let startPart1 = Date()
+    let solutionPart1 = await unwrappedDayImplementation.solvePart1(input)
+    let endPart1 = Date()
+    let durationPart1 = endPart1.timeIntervalSince(startPart1)
+    print("Solution day \(day), part 1: \(solutionPart1) (Time: \(durationPart1) seconds)")
 
-    print("Solution day \(day), part 1: \(solutionPart1)")
-    print("Solution day \(day), part 2: \(solutionPart2)")
+    let startPart2 = Date()
+    let solutionPart2 = await unwrappedDayImplementation.solvePart2(input)
+    let endPart2 = Date()
+    let durationPart2 = endPart2.timeIntervalSince(startPart2)
+    print("Solution day \(day), part 2: \(solutionPart2) (Time: \(durationPart2) seconds)")
   }
 }
 

@@ -28,11 +28,11 @@ func getZero(_ _: PatternType.Match) -> Int {
 }
 
 public struct Solution: Day {
-  public static func solvePart1(_ input: String) -> Int {
+  public static func solvePart1(_ input: String) async -> Int {
     input.matches(of: pattern).map(getProduct).reduce(0, +)
   }
 
-  public static func solvePart2(_ input: String) -> Int {
+  public static func solvePart2(_ input: String) async -> Int {
     input.matches(of: pattern).reduce(
       into: (prod: getProduct, sum: 0)
     ) { result, match in

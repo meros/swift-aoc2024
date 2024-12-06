@@ -1,8 +1,8 @@
 import Foundation
 
 public protocol Day {
-  static func solvePart1(_ input: String) -> Int
-  static func solvePart2(_ input: String) -> Int
+  static func solvePart1(_ input: String) async -> Int
+  static func solvePart2(_ input: String) async -> Int
 }
 
 public func getInput(_ day: Int, _ session: String) async -> String? {

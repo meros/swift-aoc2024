@@ -8,7 +8,7 @@ func parseInput(_ input: String) -> [[Substring.Element]] {
 }
 
 public struct Solution: Day {
-  public static func solvePart1(_ input: String) -> Int {
+  public static func solvePart1(_ input: String) async -> Int {
     let parsedInput = parseInput(input)
 
     let word = "XMAS"
@@ -36,7 +36,7 @@ public struct Solution: Day {
     return numFound
   }
 
-  public static func solvePart2(_ input: String) -> Int {
+  public static func solvePart2(_ input: String) async -> Int {
     let parsedInput = parseInput(input)
 
     let directions = [(dx: 1, dy: 1), (dx: 1, dy: -1)]
