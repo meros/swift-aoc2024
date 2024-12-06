@@ -55,3 +55,15 @@ extension [[Int]] {
     }
   }
 }
+
+extension [[Character]] {
+  public func transposedChar() -> [[Character]] {
+    guard let firstRow = self.first else {
+      return []
+    }
+
+    return firstRow.indices.map { index in
+      self.map { $0[index] }
+    }
+  }
+}

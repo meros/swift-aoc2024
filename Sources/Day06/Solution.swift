@@ -1,11 +1,36 @@
 import Foundation
 import Utils
 
-func parseInput(_ input: String) -> [[Substring.Element]] {
-  input.split(separator: "\n").map { line in
+func parseInput(_ input: String) -> Map {
+  let grid = input.split(separator: "\n").map({ line in
     line.map { $0 }
+  }).transposedChar()
+
+  var p = PositionWithDirection(x: 0, y: 0, direction: .down)
+  for x in (0..<grid.count) {
+    for y in (0..<grid[0].count) {
+      if grid[x][y] == "^" {
+        p = PositionWithDirection(x: x, y: y, direction: .up)
+      }
+    }
   }
 
+  return Map(grid: grid, p: p)
+}
+
+struct Map {
+  let startingPosition: PositionWithDirection
+  var grid: [[Substring.Element]]
+  let gridSizeX: Int
+  let gridSizeY: Int
+
+  init(grid: [[Substring.Element]], p: PositionWithDirection) {
+    self.grid = grid
+    self.startingPosition = p
+
+    self.gridSizeX = grid.count
+    self.gridSizeY = grid[0].count
+  }
 }
 
 enum Direction {
@@ -16,25 +41,17 @@ enum Direction {
 }
 
 let directionMap: [Direction: (Int, Int)] = [
-  .up: (-1, 0),
-  .down: (1, 0),
-  .left: (0, -1),
-  .right: (0, 1),
+  .up: (0, -1),
+  .down: (0, 1),
+  .left: (-1, 0),
+  .right: (1, 0),
 ]
 
-struct VisitedPosition: Hashable {
-  let x: Int
-  let y: Int
-  let direction: Direction
-
-  init(x: Int, y: Int, direction: Direction) {
-    self.x = x
-    self.y = y
-    self.direction = direction
-  }
+protocol PositionProtocol: Hashable {
+  var x: Int { get }
+  var y: Int { get }
 }
-
-struct VisitedPositionWithoutDirection: Hashable {
+struct Position: PositionProtocol {
   let x: Int
   let y: Int
 
@@ -44,84 +61,101 @@ struct VisitedPositionWithoutDirection: Hashable {
   }
 }
 
+struct PositionWithDirection: PositionProtocol {
+  let x: Int
+  let y: Int
+  let direction: Direction
+
+  init(x: Int, y: Int, direction: Direction) {
+    self.x = x
+    self.y = y
+    self.direction = direction
+  }
+
+  func moved() -> PositionWithDirection {
+    PositionWithDirection(
+      x: x + directionMap[direction]!.0, y: y + directionMap[direction]!.1, direction: direction)
+  }
+
+  func backedUp() -> PositionWithDirection {
+    PositionWithDirection(
+      x: x - directionMap[direction]!.0,
+      y: y - directionMap[direction]!.1,
+      direction: direction == .up
+        ? .right
+        : direction == .right
+          ? .down
+          : direction == .down
+            ? .left
+            : .up
+    )
+  }
+}
+
 public struct Solution: Day {
   public static func solvePart1(_ input: String) -> Int {
     let map = parseInput(input)
 
-    return walkMap(inparsedInput: map) ?? 0
+    return walkMap(map) ?? 0
   }
 
   public static func solvePart2(_ input: String) -> Int {
-    let map = parseInput(input)
+    var map = parseInput(input)
 
-    let sizeY = map.count
-    let sizeX = map[0].count
     var loopingPositions = 0
 
-    for x in (0..<sizeY) {
-      for y in (0..<sizeX) {
-        var mapCopy = map
-        if mapCopy[x][y] == "." {
-          mapCopy[x][y] = "#"
-          if walkMap(inparsedInput: mapCopy) == nil {
-            print("Looping at \(x), \(y)")
+    for x in (0..<map.gridSizeX) {
+      for y in (0..<map.gridSizeY) {
+        if map.grid[x][y] == "." {
+          map.grid[x][y] = "#"
+
+          if walkMap(map) == nil {
             loopingPositions += 1
           }
+
+          map.grid[x][y] = "."
         }
       }
+
+      let percentageCompleted = Double(x + 1) / Double(map.gridSizeX) * 100
+      let percentageCompletedInt = Int(percentageCompleted)
+      let spinner = ["|", "/", "-", "\\"]
+      let spinnerIndex = x % spinner.count
+      print("Completed \(percentageCompletedInt)% of rows \(spinner[spinnerIndex])")
     }
 
     return loopingPositions
   }
 }
 
-func walkMap(inparsedInput: [[Substring.Element]]) -> Int? {
-  var map = inparsedInput
-  let sizeY = map.count
-  let sizeX = map[0].count
-
-  var position = (0, 0)
-  var direction = Direction.up
-
-  for x in (0..<sizeY) {
-    for y in (0..<sizeX) {
-      if map[x][y] == "^" {
-        position = (x, y)
-        map[x][y] = "."
-        break
-      }
-    }
-  }
+func walkMap(_ map: Map) -> Int? {
+  var currentPosition = map.startingPosition
 
   // Start walking
-  var visitedPositions = Set<VisitedPosition>()
-  var visitedPositionsWithoutDirection = Set<VisitedPositionWithoutDirection>()
+  var visitedPositionsWithDirection = Set<PositionWithDirection>()
+  var visitedPositions = Set<Position>()
+
   while true {
-    let visitedPosition = VisitedPosition(x: position.0, y: position.1, direction: direction)
-    if visitedPositions.contains(visitedPosition) {
+    currentPosition = currentPosition.moved()
+
+    // Out of bounds
+    if currentPosition.x < 0 || currentPosition.x >= map.gridSizeX || currentPosition.y < 0
+      || currentPosition.y >= map.gridSizeY
+    {
+      return visitedPositions.count
+    }
+
+    if map.grid[currentPosition.x][currentPosition.y] == "#" {
+      currentPosition = currentPosition.backedUp()
+    }
+
+    let visitedPosition = PositionWithDirection(
+      x: currentPosition.x, y: currentPosition.y, direction: currentPosition.direction)
+    if visitedPositionsWithDirection.contains(visitedPosition) {
       return nil
     }
 
-    visitedPositionsWithoutDirection.insert(
-      VisitedPositionWithoutDirection(x: position.0, y: position.1))
-    visitedPositions.insert(visitedPosition)
-    position = (position.0 + directionMap[direction]!.0, position.1 + directionMap[direction]!.1)
-
-    // Out of bounds
-    if position.0 < 0 || position.0 >= sizeY || position.1 < 0 || position.1 >= sizeX {
-      break
-    }
-
-    if map[position.0][position.1] == "#" {
-      // Brack out, turn 90 degrees to the right
-      position = (
-        position.0 - directionMap[direction]!.0, position.1 - directionMap[direction]!.1
-      )
-
-      direction =
-        direction == .up ? .right : direction == .right ? .down : direction == .down ? .left : .up
-    }
+    visitedPositionsWithDirection.insert(visitedPosition)
+    visitedPositions.insert(Position(x: currentPosition.x, y: currentPosition.y))
   }
-
-  return visitedPositionsWithoutDirection.count
 }
