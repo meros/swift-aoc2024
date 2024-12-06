@@ -47,26 +47,22 @@ func runDay(_ day: Int) async {
     return
   }
 
-  do {
-    let exampleInput = await getExampleInput(day)
-    if let exampleInput = exampleInput {
-      let exampleSolutionPart1 = unwrappedDayImplementation.solvePart1(exampleInput)
-      let exampleSolutionPart2 = unwrappedDayImplementation.solvePart2(exampleInput)
+  let exampleInput = getExampleInput(day)
+  if let exampleInput = exampleInput {
+    let exampleSolutionPart1 = unwrappedDayImplementation.solvePart1(exampleInput)
+    let exampleSolutionPart2 = unwrappedDayImplementation.solvePart2(exampleInput)
 
-      print("Example solution day \(day), part 1: \(exampleSolutionPart1)")
-      print("Example solution day \(day), part 2: \(exampleSolutionPart2)")
-    }
+    print("Example solution day \(day), part 1: \(exampleSolutionPart1)")
+    print("Example solution day \(day), part 2: \(exampleSolutionPart2)")
+  }
 
-    let input = await getInput(day, session)
-    if let input = input {
-      let solutionPart1 = unwrappedDayImplementation.solvePart1(input)
-      let solutionPart2 = unwrappedDayImplementation.solvePart2(input)
+  let input = await getInput(day, session)
+  if let input = input {
+    let solutionPart1 = unwrappedDayImplementation.solvePart1(input)
+    let solutionPart2 = unwrappedDayImplementation.solvePart2(input)
 
-      print("Solution day \(day), part 1: \(solutionPart1)")
-      print("Solution day \(day), part 2: \(solutionPart2)")
-    }
-  } catch {
-    print("Error reading input for day \(day): \(error)")
+    print("Solution day \(day), part 1: \(solutionPart1)")
+    print("Solution day \(day), part 2: \(solutionPart2)")
   }
 }
 
