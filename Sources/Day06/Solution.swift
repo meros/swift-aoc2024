@@ -62,9 +62,9 @@ struct Position: PositionProtocol {
 }
 
 struct PositionWithDirection: PositionProtocol {
-  let x: Int
-  let y: Int
-  let direction: Direction
+  var x: Int
+  var y: Int
+  var direction: Direction
 
   init(x: Int, y: Int, direction: Direction) {
     self.x = x
@@ -72,23 +72,23 @@ struct PositionWithDirection: PositionProtocol {
     self.direction = direction
   }
 
-  func moved() -> PositionWithDirection {
-    PositionWithDirection(
-      x: x + directionMap[direction]!.0, y: y + directionMap[direction]!.1, direction: direction)
+  mutating func move() {
+    x = x + directionMap[direction]!.0
+    y = y + directionMap[direction]!.1
   }
 
-  func backedUp() -> PositionWithDirection {
-    PositionWithDirection(
-      x: x - directionMap[direction]!.0,
-      y: y - directionMap[direction]!.1,
-      direction: direction == .up
-        ? .right
-        : direction == .right
-          ? .down
-          : direction == .down
-            ? .left
-            : .up
-    )
+  mutating func backUp() {
+    x = x - directionMap[direction]!.0
+    y = y - directionMap[direction]!.1
+    direction =
+      direction == .up
+      ? .right
+      : direction == .right
+        ? .down
+        : direction == .down
+          ? .left
+          : .up
+
   }
 }
 
@@ -96,7 +96,7 @@ public struct Solution: Day {
   public static func solvePart1(_ input: String) -> Int {
     let map = parseInput(input)
 
-    return walkMap(map) ?? 0
+    return walkMap(map)?.0 ?? 0
   }
 
   public static func solvePart2(_ input: String) -> Int {
@@ -104,31 +104,25 @@ public struct Solution: Day {
 
     var loopingPositions = 0
 
-    for x in (0..<map.gridSizeX) {
-      for y in (0..<map.gridSizeY) {
-        if map.grid[x][y] == "." {
-          map.grid[x][y] = "#"
+    let allPossiblePositions = walkMap(map)!.1
 
-          if walkMap(map) == nil {
-            loopingPositions += 1
-          }
+    for position in allPossiblePositions {
+      if map.grid[position.x][position.y] == "." {
+        map.grid[position.x][position.y] = "#"
 
-          map.grid[x][y] = "."
+        if checkInfinite(map) {
+          loopingPositions += 1
         }
-      }
 
-      let percentageCompleted = Double(x + 1) / Double(map.gridSizeX) * 100
-      let percentageCompletedInt = Int(percentageCompleted)
-      let spinner = ["|", "/", "-", "\\"]
-      let spinnerIndex = x % spinner.count
-      print("Completed \(percentageCompletedInt)% of rows \(spinner[spinnerIndex])")
+        map.grid[position.x][position.y] = "."
+      }
     }
 
     return loopingPositions
   }
 }
 
-func walkMap(_ map: Map) -> Int? {
+func walkMap(_ map: Map) -> (Int, Set<Position>)? {
   var currentPosition = map.startingPosition
 
   // Start walking
@@ -136,26 +130,52 @@ func walkMap(_ map: Map) -> Int? {
   var visitedPositions = Set<Position>()
 
   while true {
-    currentPosition = currentPosition.moved()
+    currentPosition.move()
 
     // Out of bounds
     if currentPosition.x < 0 || currentPosition.x >= map.gridSizeX || currentPosition.y < 0
       || currentPosition.y >= map.gridSizeY
     {
-      return visitedPositions.count
+      return (visitedPositions.count, visitedPositions)
     }
 
     if map.grid[currentPosition.x][currentPosition.y] == "#" {
-      currentPosition = currentPosition.backedUp()
+      currentPosition.backUp()
     }
 
-    let visitedPosition = PositionWithDirection(
-      x: currentPosition.x, y: currentPosition.y, direction: currentPosition.direction)
-    if visitedPositionsWithDirection.contains(visitedPosition) {
+    if visitedPositionsWithDirection.contains(currentPosition) {
       return nil
     }
 
-    visitedPositionsWithDirection.insert(visitedPosition)
+    visitedPositionsWithDirection.insert(currentPosition)
     visitedPositions.insert(Position(x: currentPosition.x, y: currentPosition.y))
+  }
+}
+
+func checkInfinite(_ map: Map) -> Bool {
+  var currentPosition = map.startingPosition
+
+  // Start walking
+  var visitedPositionsWithDirection = Set<PositionWithDirection>()
+
+  while true {
+    currentPosition.move()
+
+    // Out of bounds
+    if currentPosition.x < 0 || currentPosition.x >= map.gridSizeX || currentPosition.y < 0
+      || currentPosition.y >= map.gridSizeY
+    {
+      return false
+    }
+
+    if map.grid[currentPosition.x][currentPosition.y] == "#" {
+      currentPosition.backUp()
+    }
+
+    if visitedPositionsWithDirection.contains(currentPosition) {
+      return true
+    }
+
+    visitedPositionsWithDirection.insert(currentPosition)
   }
 }
