@@ -108,15 +108,18 @@ public struct Solution: Day {
 
     let allPossiblePositions = walkMap(map)
 
+    var turnMap = Set<PositionWithDirection>()
+
     var numLoopingPositions = 0
     for position in allPossiblePositions {
       map.grid[position.x][position.y] = "#"
 
-      if checkInfinite(map) {
+      if checkInfinite(map, &turnMap) {
         numLoopingPositions += 1
 
       }
 
+      turnMap.removeAll(keepingCapacity: true)
       map.grid[position.x][position.y] = "."
     }
 
@@ -148,11 +151,8 @@ func walkMap(_ map: Map) -> Set<Position> {
   }
 }
 
-func checkInfinite(_ map: Map) -> Bool {
+func checkInfinite(_ map: Map, _ turns: inout Set<PositionWithDirection>) -> Bool {
   var currentPosition = map.startingPosition
-
-  // Start walking
-  var turns = Set<PositionWithDirection>()
 
   while true {
     currentPosition.move()
@@ -171,6 +171,5 @@ func checkInfinite(_ map: Map) -> Bool {
         return true
       }
     }
-
   }
 }
