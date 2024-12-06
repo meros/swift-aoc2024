@@ -8,13 +8,13 @@ public func parseInput(_ input: String) -> [[Int]] {
 }
 
 public struct Solution: Day {
-  public static func solvePart1(_ input: String) -> Int {
+  public static func solvePart1(_ input: String) async -> Int {
     let parsedInput = parseInput(input).map { $0.sorted() }.transposed()
     let distances = parsedInput.map { abs($0[0] - $0[1]) }
     return distances.reduce(0, +)
   }
 
-  public static func solvePart2(_ input: String) -> Int {
+  public static func solvePart2(_ input: String) async -> Int {
     let parsedInput = parseInput(input)
     let lastMap = parsedInput[1].reduce(into: [:]) { counts, number in
       counts[number, default: 0] += 1

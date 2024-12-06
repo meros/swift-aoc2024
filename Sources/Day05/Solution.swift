@@ -34,7 +34,7 @@ func getSortingPredicate(_ rules: PageOrderRules) -> (Int, Int) -> Bool {
 }
 
 public struct Solution: Day {
-  public static func solvePart1(_ input: String) -> Int {
+  public static func solvePart1(_ input: String) async -> Int {
     let (updates, rules) = parseInput(input)
 
     return updates.filter { isValidUpdate($0, rules) }
@@ -42,7 +42,7 @@ public struct Solution: Day {
       .reduce(0, +)
   }
 
-  public static func solvePart2(_ input: String) -> Int {
+  public static func solvePart2(_ input: String) async -> Int {
     let (updates, rules) = parseInput(input)
 
     return updates.filter { !isValidUpdate($0, rules) }

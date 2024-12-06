@@ -110,20 +110,17 @@ actor PossiblePositionsActor {
 }
 
 public struct Solution: Day {
-  public static func solvePart1(_ input: String) -> Int {
+  public static func solvePart1(_ input: String) async -> Int {
     let map = parseInput(input)
 
     return walkMap(map).count + 1
   }
 
-  public static func solvePart2(_ input: String) -> Int {
+  public static func solvePart2(_ input: String) async -> Int {
     let map = parseInput(input)
     let allPossiblePositionsActor = PossiblePositionsActor(walkMap(map))
 
-    var numLoopingPositions = 0
-
-    let semaphore = DispatchSemaphore(value: 0)  // To block until all tasks are complete
-    Task {
+    return await Task {
       await withTaskGroup(of: Int.self) { group in
         for _ in 0..<10 {
           group.addTask {
@@ -138,25 +135,18 @@ public struct Solution: Day {
               if checkInfinite(localMap, &localTurns) {
                 localNumLoopingPositions += 1
               }
-              
+
               localTurns.removeAll(keepingCapacity: true)
               localMap.grid[currentPosition.x][currentPosition.y] = "."
             }
-            
+
             return localNumLoopingPositions
           }
         }
 
-        for await result in group {
-          numLoopingPositions += result
-        }
-
-        semaphore.signal()
+        return await group.reduce(0, +)
       }
-    }
-    semaphore.wait()
-
-    return numLoopingPositions
+    }.result.get()
   }
 }
 
