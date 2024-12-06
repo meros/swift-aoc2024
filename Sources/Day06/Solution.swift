@@ -96,6 +96,19 @@ struct PositionWithDirection: PositionProtocol {
   }
 }
 
+actor PossiblePositionsActor {
+  var allPossiblePositions: Set<Position>
+
+  init(_ positions: Set<Position>) {
+    allPossiblePositions = positions
+  }
+
+  func pop() -> Position? {
+
+    return allPossiblePositions.popFirst()
+  }
+}
+
 public struct Solution: Day {
   public static func solvePart1(_ input: String) -> Int {
     let map = parseInput(input)
@@ -104,24 +117,44 @@ public struct Solution: Day {
   }
 
   public static func solvePart2(_ input: String) -> Int {
-    var map = parseInput(input)
-
-    let allPossiblePositions = walkMap(map)
-
-    var turnMap = Set<PositionWithDirection>()
+    let map = parseInput(input)
+    let allPossiblePositionsActor = PossiblePositionsActor(walkMap(map))
 
     var numLoopingPositions = 0
-    for position in allPossiblePositions {
-      map.grid[position.x][position.y] = "#"
 
-      if checkInfinite(map, &turnMap) {
-        numLoopingPositions += 1
+    let semaphore = DispatchSemaphore(value: 0)  // To block until all tasks are complete
+    Task {
+      await withTaskGroup(of: Int.self) { group in
+        for _ in 0..<10 {
+          group.addTask {
+            // Make local copies of data that is modified in the task
+            var localMap = map
+            var localTurns = Set<PositionWithDirection>()
+            var localNumLoopingPositions = 0
 
+            while let currentPosition = await allPossiblePositionsActor.pop() {
+              localMap.grid[currentPosition.x][currentPosition.y] = "#"
+
+              if checkInfinite(localMap, &localTurns) {
+                localNumLoopingPositions += 1
+              }
+              
+              localTurns.removeAll(keepingCapacity: true)
+              localMap.grid[currentPosition.x][currentPosition.y] = "."
+            }
+            
+            return localNumLoopingPositions
+          }
+        }
+
+        for await result in group {
+          numLoopingPositions += result
+        }
+
+        semaphore.signal()
       }
-
-      turnMap.removeAll(keepingCapacity: true)
-      map.grid[position.x][position.y] = "."
     }
+    semaphore.wait()
 
     return numLoopingPositions
   }
