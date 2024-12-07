@@ -2,65 +2,65 @@ import Foundation
 import Utils
 
 func findSolution(
-  _ valuesLeft: Array<Int>.SubSequence, _ partSolution: Int, _ solution: Int,
-  includeConcat: Bool = false
+  _ solution: Int,
+  _ partSolution: Int,
+  _ valuesLeft: Array<Int>.SubSequence,
+  _ includeConcat: Bool = false
 ) -> Bool {
-  // We are done
-  if valuesLeft.isEmpty && partSolution == solution {
-    return true
-  }
-
-  // Impossible to reach the solution
-  if valuesLeft.isEmpty || partSolution > solution {
+  // Early exit if the current part solution is already greater than the solution
+  if partSolution > solution {
     return false
   }
 
-  let firstValue = valuesLeft.first!
   let valuesLeftFirstDropped = valuesLeft.dropFirst()
-
-  // Try *
-  if findSolution(valuesLeftFirstDropped, partSolution * firstValue, solution, includeConcat: includeConcat) {
-    return true
+  if let firstValue = valuesLeft.first {
+    return findSolution(
+      solution,
+      partSolution * firstValue,
+      valuesLeftFirstDropped,
+      includeConcat)
+      || findSolution(
+        solution,
+        partSolution + firstValue,
+        valuesLeftFirstDropped,
+        includeConcat)
+      || (includeConcat
+        && findSolution(
+          solution, Int(String(partSolution) + String(firstValue))!, valuesLeftFirstDropped,
+          includeConcat))
   }
 
-  // Try +
-  if findSolution(valuesLeftFirstDropped, partSolution + firstValue, solution, includeConcat: includeConcat) {
-    return true
-  }
-
-  // Try ||
-  if includeConcat && findSolution(valuesLeftFirstDropped, Int(String(partSolution) + String(firstValue))!, solution,includeConcat: includeConcat) {
-    return true
-  }
-
-  return false
+  return partSolution == solution
 }
 
 public struct Solution: Day {
   public static func solvePart1(_ input: String) async -> Int {
     let input = parseInput(input)
 
-    return input.filter { (key, values) in
-      findSolution(values[1..<values.count], values.first!, key)
+    return input.filter { (solution, values) in
+      findSolution(solution, values.first!, values.dropFirst())
     }.map { (key, _) in key }.reduce(0, +)
   }
 
   public static func solvePart2(_ input: String) async -> Int {
     let input = parseInput(input)
 
-    return input.filter { (key, values) in
-      findSolution(values[1..<values.count], values.first!, key, includeConcat: true)
+    return input.filter { (solution, values) in
+      findSolution(solution, values.first!, values.dropFirst(), true)
     }.map { (key, _) in key }.reduce(0, +)
   }
 }
 
 func parseInput(_ input: String) -> [(Int, [Int])] {
-  return
-    input
-    .components(separatedBy: .newlines)
-    .filter { !$0.isEmpty }
-    .map { line in
-      let parts = line.split(separator: ":")
-      return (Int(parts[0])!, parts[1].split(separator: " ").map { Int($0)! })
+  input
+    .split(separator: "\n")
+    .compactMap {
+      let parts = $0.split(separator: ":")
+      if let key = Int(parts[0]) {
+        let values = parts[1].split(separator: " ").compactMap { Int($0) }
+        return (key, values)
+      }
+
+      return nil
     }
 }
