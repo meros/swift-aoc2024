@@ -20,7 +20,9 @@ func rec2(solution: Int, partSolution: Int, values: Array<Int>.SubSequence) -> B
   if let firstValue = firstValue {
     return rec2(solution: solution, partSolution: partSolution + firstValue, values: restValues)
       || rec2(solution: solution, partSolution: partSolution * firstValue, values: restValues)
-      || rec2(solution: solution, partSolution: Int(String(partSolution) + String(firstValue))!, values: restValues)
+      || rec2(
+        solution: solution, partSolution: Int(String(partSolution) + String(firstValue))!,
+        values: restValues)
   }
 
   return partSolution == solution
