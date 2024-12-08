@@ -6,6 +6,7 @@ import Day05
 import Day06
 import Day07
 import Day08
+import Day09
 import Foundation
 import Utils
 
@@ -44,6 +45,8 @@ func runDay(_ day: Int) async {
     dayImplementation = Day07.Solution.self
   case 8:
     dayImplementation = Day08.Solution.self
+  case 9:
+    dayImplementation = Day09.Solution.self
   default:
     dayImplementation = nil
   }
@@ -62,19 +65,21 @@ func runDay(_ day: Int) async {
     print("Example solution day \(day), part 2: \(exampleSolutionPart2)")
   }
 
-  let input = await getInput(day, session)
-  if let input = input {
-    let startPart1 = Date()
-    let solutionPart1 = await unwrappedDayImplementation.solvePart1(input)
-    let endPart1 = Date()
-    let durationPart1 = endPart1.timeIntervalSince(startPart1)
-    print("Solution day \(day), part 1: \(solutionPart1) (Time: \(durationPart1) seconds)")
+  if !unwrappedDayImplementation.onlySolveExamples {
+    let input = await getInput(day, session)
+    if let input = input {
+      let startPart1 = Date()
+      let solutionPart1 = await unwrappedDayImplementation.solvePart1(input)
+      let endPart1 = Date()
+      let durationPart1 = endPart1.timeIntervalSince(startPart1)
+      print("Solution day \(day), part 1: \(solutionPart1) (Time: \(durationPart1) seconds)")
 
-    let startPart2 = Date()
-    let solutionPart2 = await unwrappedDayImplementation.solvePart2(input)
-    let endPart2 = Date()
-    let durationPart2 = endPart2.timeIntervalSince(startPart2)
-    print("Solution day \(day), part 2: \(solutionPart2) (Time: \(durationPart2) seconds)")
+      let startPart2 = Date()
+      let solutionPart2 = await unwrappedDayImplementation.solvePart2(input)
+      let endPart2 = Date()
+      let durationPart2 = endPart2.timeIntervalSince(startPart2)
+      print("Solution day \(day), part 2: \(solutionPart2) (Time: \(durationPart2) seconds)")
+    }
   }
 }
 

@@ -3,6 +3,13 @@ import Foundation
 public protocol Day {
   static func solvePart1(_ input: String) async -> Int
   static func solvePart2(_ input: String) async -> Int
+  static var onlySolveExamples: Bool { get }
+}
+
+extension Day {
+  public static var onlySolveExamples: Bool {
+    return false
+  }
 }
 
 public func getInput(_ day: Int, _ session: String) async -> String? {
