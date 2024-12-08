@@ -4,7 +4,7 @@ import Utils
 func parseInput(_ input: String) -> Map {
   let grid = input.split(separator: "\n").map({ line in
     line.map { $0 }
-  }).transposedChar()
+  }).transposed()
 
   var p = PositionWithDirection(x: 0, y: 0, direction: .down)
   for x in (0..<grid.count) {
@@ -47,21 +47,7 @@ let directionMap: [Direction: (Int, Int)] = [
   .right: (1, 0),
 ]
 
-protocol PositionProtocol: Hashable {
-  var x: Int { get }
-  var y: Int { get }
-}
-struct Position: PositionProtocol {
-  let x: Int
-  let y: Int
-
-  init(x: Int, y: Int) {
-    self.x = x
-    self.y = y
-  }
-}
-
-struct PositionWithDirection: PositionProtocol {
+struct PositionWithDirection: Hashable {
   var x: Int
   var y: Int
   var direction: Direction
@@ -92,7 +78,7 @@ struct PositionWithDirection: PositionProtocol {
   }
 
   func asPosition() -> Position {
-    return Position(x: x, y: y)
+    return Position(x, y)
   }
 }
 
