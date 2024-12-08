@@ -44,15 +44,15 @@ public func getExampleInput(_ day: Int) -> String? {
   }
 }
 extension Array where Element: Collection, Element.Index == Int {
-    public func transposed() -> [[Element.Element]] {
-        guard let firstRow = self.first else {
-            return []
-        }
-
-        return firstRow.indices.map { index in
-            self.map { $0[index] }
-        }
+  public func transposed() -> [[Element.Element]] {
+    guard let firstRow = self.first else {
+      return []
     }
+
+    return firstRow.indices.map { index in
+      self.map { $0[index] }
+    }
+  }
 }
 
 public struct Position: Hashable {
