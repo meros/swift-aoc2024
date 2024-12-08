@@ -43,27 +43,36 @@ public func getExampleInput(_ day: Int) -> String? {
     return nil
   }
 }
+extension Array where Element: Collection, Element.Index == Int {
+    public func transposed() -> [[Element.Element]] {
+        guard let firstRow = self.first else {
+            return []
+        }
 
-extension [[Int]] {
-  public func transposed() -> [[Int]] {
-    guard let firstRow = self.first else {
-      return []
+        return firstRow.indices.map { index in
+            self.map { $0[index] }
+        }
     }
-
-    return firstRow.indices.map { index in
-      self.map { $0[index] }
-    }
-  }
 }
 
-extension [[Character]] {
-  public func transposedChar() -> [[Character]] {
-    guard let firstRow = self.first else {
-      return []
-    }
+public struct Position: Hashable {
+  public let x: Int
+  public let y: Int
 
-    return firstRow.indices.map { index in
-      self.map { $0[index] }
-    }
+  public init(_ x: Int, _ y: Int) {
+    self.x = x
+    self.y = y
+  }
+
+  public static func - (lhs: Position, rhs: Position) -> Position {
+    return Position(lhs.x - rhs.x, lhs.y - rhs.y)
+  }
+
+  public static func + (lhs: Position, rhs: Position) -> Position {
+    return Position(lhs.x + rhs.x, lhs.y + rhs.y)
+  }
+
+  public static func * (lhs: Position, rhs: Int) -> Position {
+    return Position(lhs.x * rhs, lhs.y * rhs)
   }
 }
