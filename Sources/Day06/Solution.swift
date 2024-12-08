@@ -2,134 +2,103 @@ import Foundation
 import Utils
 
 func parseInput(_ input: String) -> Map {
-  let grid = input.split(separator: "\n").map({ line in
-    line.map { $0 }
-  }).transposed()
+  let grid = input.parseGrid().map { $0 }.transposed()
 
-  var p = PositionWithDirection(x: 0, y: 0, direction: .down)
-  for x in (0..<grid.count) {
-    for y in (0..<grid[0].count) {
+  var startingPosition = PositionWithDirection(x: 0, y: 0, direction: .down)
+  for x in 0..<grid.count {
+    for y in 0..<grid[0].count {
       if grid[x][y] == "^" {
-        p = PositionWithDirection(x: x, y: y, direction: .up)
+        startingPosition = PositionWithDirection(x: x, y: y, direction: .up)
       }
     }
   }
 
-  return Map(grid: grid, p: p)
+  return Map(grid: grid, startingPosition: startingPosition)
 }
 
 struct Map {
   let startingPosition: PositionWithDirection
-  var grid: [[Substring.Element]]
-  let gridSizeX: Int
-  let gridSizeY: Int
+  var grid: Grid<Substring.Element>
 
-  init(grid: [[Substring.Element]], p: PositionWithDirection) {
-    self.grid = grid
-    self.startingPosition = p
-
-    self.gridSizeX = grid.count
-    self.gridSizeY = grid[0].count
+  init(grid: [[Substring.Element]], startingPosition: PositionWithDirection) {
+    self.grid = Grid(grid)
+    self.startingPosition = startingPosition
   }
 }
 
-enum Direction {
-  case up
-  case down
-  case left
-  case right
-}
-
-let directionMap: [Direction: (Int, Int)] = [
-  .up: (0, -1),
-  .down: (0, 1),
-  .left: (-1, 0),
-  .right: (1, 0),
-]
-
 struct PositionWithDirection: Hashable {
-  var x: Int
-  var y: Int
+  var position: Position
   var direction: Direction
 
   init(x: Int, y: Int, direction: Direction) {
-    self.x = x
-    self.y = y
+    self.position = Position(x, y)
     self.direction = direction
   }
 
   mutating func move() {
-    x = x + directionMap[direction]!.0
-    y = y + directionMap[direction]!.1
+    position = position + direction
   }
 
   mutating func backUpAndTurn() {
-    x = x - directionMap[direction]!.0
-    y = y - directionMap[direction]!.1
-    direction =
-      direction == .up
-      ? .right
-      : direction == .right
-        ? .down
-        : direction == .down
-          ? .left
-          : .up
-
+    position = position - direction
+    direction = nextDirection(direction)
   }
 
-  func asPosition() -> Position {
-    return Position(x, y)
+  private func nextDirection(_ current: Direction) -> Direction {
+    switch current {
+    case Direction.up: return Direction.right
+    case Direction.right: return Direction.down
+    case Direction.down: return Direction.left
+    case Direction.left: return Direction.up
+    default: return current
+    }
   }
 }
 
 actor PossiblePositionsActor {
-  var allPossiblePositions: Set<Position>
+  var positions: Set<Position>
 
   init(_ positions: Set<Position>) {
-    allPossiblePositions = positions
+    self.positions = positions
   }
 
   func pop() -> Position? {
-
-    return allPossiblePositions.popFirst()
+    positions.popFirst()
   }
 }
 
 public struct Solution: Day {
   public static func solvePart1(_ input: String) async -> Int {
     let map = parseInput(input)
-
     return walkMap(map).count + 1
   }
 
   public static func solvePart2(_ input: String) async -> Int {
     let map = parseInput(input)
-    let allPossiblePositionsActor = PossiblePositionsActor(walkMap(map))
+    let actor = PossiblePositionsActor(walkMap(map))
 
     return await Task {
       await withTaskGroup(of: Int.self) { group in
         for _ in 0..<10 {
           group.addTask {
-            // Make local copies of data that is modified in the task
             var localMap = map
-            var localTurns = Set<PositionWithDirection>()
-            var localNumLoopingPositions = 0
+            var turns = Set<PositionWithDirection>()
+            var loopCount = 0
 
-            while let currentPosition = await allPossiblePositionsActor.pop() {
-              localMap.grid[currentPosition.x][currentPosition.y] = "#"
+            while let pos = await actor.pop() {
+              localMap.grid.values[pos.x][pos.y] = "#"
 
-              if checkInfinite(localMap, &localTurns) {
-                localNumLoopingPositions += 1
+              if checkInfinite(localMap, &turns) {
+                loopCount += 1
               }
 
-              localTurns.removeAll(keepingCapacity: true)
-              localMap.grid[currentPosition.x][currentPosition.y] = "."
+              turns.removeAll(keepingCapacity: true)
+              localMap.grid.values[pos.x][pos.y] = "."
             }
 
-            return localNumLoopingPositions
+            return loopCount
           }
         }
-
         return await group.reduce(0, +)
       }
     }.result.get()
@@ -137,46 +106,37 @@ public struct Solution: Day {
 }
 
 func walkMap(_ map: Map) -> Set<Position> {
-  var currentPosition = map.startingPosition
-
-  // Start walking
-  var visitedPositions = Set<Position>()
+  var current = map.startingPosition
+  var visited = Set<Position>()
 
   while true {
-    currentPosition.move()
+    current.move()
 
-    // Out of bounds
-    if currentPosition.x < 0 || currentPosition.x >= map.gridSizeX || currentPosition.y < 0
-      || currentPosition.y >= map.gridSizeY
-    {
-      return visitedPositions
+    if !map.grid.inBounds(current.position) {
+      return visited
     }
 
-    if map.grid[currentPosition.x][currentPosition.y] == "#" {
-      currentPosition.backUpAndTurn()
+    if map.grid.values[current.position.x][current.position.y] == "#" {
+      current.backUpAndTurn()
     }
 
-    visitedPositions.insert(currentPosition.asPosition())
+    visited.insert(current.position)
   }
 }
 
 func checkInfinite(_ map: Map, _ turns: inout Set<PositionWithDirection>) -> Bool {
-  var currentPosition = map.startingPosition
+  var current = map.startingPosition
 
   while true {
-    currentPosition.move()
+    current.move()
 
-    // Out of bounds
-    if currentPosition.x < 0 || currentPosition.x >= map.gridSizeX || currentPosition.y < 0
-      || currentPosition.y >= map.gridSizeY
-    {
+    if !map.grid.inBounds(current.position) {
       return false
     }
 
-    if map.grid[currentPosition.x][currentPosition.y] == "#" {
-      currentPosition.backUpAndTurn()
-      let result = turns.insert(currentPosition)
-      if !result.inserted {
+    if map.grid.values[current.position.x][current.position.y] == "#" {
+      current.backUpAndTurn()
+      if !turns.insert(current).inserted {
         return true
       }
     }

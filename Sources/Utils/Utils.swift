@@ -71,8 +71,8 @@ public struct Position: Hashable {
     self.y = y
   }
 
-  public static func - (lhs: Position, rhs: Position) -> Position {
-    return Position(lhs.x - rhs.x, lhs.y - rhs.y)
+  public static func - (lhs: Position, rhs: Position) -> Direction {
+    return Direction(lhs.x - rhs.x, lhs.y - rhs.y)
   }
 
   public static func + (lhs: Position, rhs: Position) -> Position {
@@ -81,5 +81,89 @@ public struct Position: Hashable {
 
   public static func * (lhs: Position, rhs: Int) -> Position {
     return Position(lhs.x * rhs, lhs.y * rhs)
+  }
+
+  public static func + (lhs: Position, rhs: Direction) -> Position {
+    return Position(lhs.x + rhs.dx, lhs.y + rhs.dy)
+  }
+
+  public static func - (lhs: Position, rhs: Direction) -> Position {
+    return Position(lhs.x - rhs.dx, lhs.y - rhs.dy)
+  }
+}
+
+extension String {
+  public func parseGrid() -> [[Substring.Element]] {
+    self.split(separator: "\n").map { line in
+      line.map { $0 }
+    }
+  }
+
+  public func parseLines<T>(_ transform: (Substring) -> T) -> [T] {
+    self.split(separator: "\n").map(transform)
+  }
+
+  public func parseNumberGrid() -> [[Int]] {
+    self.split(separator: "\n").map { line in
+      line.split(separator: " ").compactMap { Int($0) }
+    }
+  }
+}
+
+public struct Grid<T> {
+  public var values: [[T]]
+  public let width: Int
+  public let height: Int
+
+  public init(_ values: [[T]]) {
+    self.values = values
+    self.width = values[0].count
+    self.height = values.count
+  }
+
+  public func inBounds(_ position: Position) -> Bool {
+    position.x >= 0 && position.x < width && position.y >= 0 && position.y < height
+  }
+
+  public func transposed() -> Grid<T> {
+    Grid(values.transposed())
+  }
+}
+
+public struct Direction: Hashable {
+  public static let up = Direction(0, -1)
+  public static let down = Direction(0, 1)
+  public static let left = Direction(-1, 0)
+  public static let right = Direction(1, 0)
+
+  public let dx: Int
+  public let dy: Int
+  init(_ dx: Int, _ dy: Int) {
+    self.dx = dx
+    self.dy = dy
+  }
+
+  public static let allDirections: [Direction] = [.up, .right, .down, .left]
+  public static let allDirectionsWithDiagonals: [Direction] = [
+    .up, .right, .down, .left,
+    Direction(1, 1), Direction(-1, -1),
+    Direction(1, -1), Direction(-1, 1),
+  ]
+
+  public static func * (lhs: Direction, rhs: Int) -> Direction {
+    return Direction(lhs.dx * rhs, lhs.dy * rhs)
+  }
+}
+
+extension Collection where Element: Collection {
+  public var dimensions: (width: Int, height: Int) {
+    guard let firstRow = self.first else { return (0, 0) }
+    return (firstRow.count, self.count)
+  }
+}
+
+extension Collection {
+  public func count(where predicate: (Element) -> Bool) -> Int {
+    self.filter(predicate).count
   }
 }
