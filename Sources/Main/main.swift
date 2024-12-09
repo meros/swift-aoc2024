@@ -18,7 +18,20 @@ func readSessionFromFile() -> String? {
     in: .whitespacesAndNewlines)
 }
 
-print("🎄🎅 Welcome to Advent of Code 2024! 🎅🎄")
+// Add at start of file
+let christmasTree = """
+      🎄
+     🎄🎄
+    🎄🎄🎄
+   🎄🎄🎄🎄
+  🎄🎄🎄🎄🎄
+      🎁
+  """
+
+// Replace print statements with:
+print("\n\(christmasTree)")
+print("🎄 ⭐️ Welcome to Advent of Code 2024! ⭐️ 🎄")
+print("🎅 Ho ho ho! Let's solve some puzzles! 🎅\n")
 
 func getCurrentDay() -> Int {
   let date = Date()
@@ -52,33 +65,37 @@ func runDay(_ day: Int) async {
   }
 
   guard let unwrappedDayImplementation = dayImplementation else {
-    print("Day \(day) not implemented yet.")
+    print("🎅 Ho ho ho! Day \(day) is still wrapped up under the tree! 🎁")
     return
   }
 
   let exampleInput = getExampleInput(day)
   if let exampleInput = exampleInput {
+    print("🌟 Testing with example input for Day \(day):")
     let exampleSolutionPart1 = await unwrappedDayImplementation.solvePart1(exampleInput)
-    print("Example solution day \(day), part 1: \(exampleSolutionPart1)")
+    print("🎁 Part 1: \(exampleSolutionPart1)")
 
     let exampleSolutionPart2 = await unwrappedDayImplementation.solvePart2(exampleInput)
-    print("Example solution day \(day), part 2: \(exampleSolutionPart2)")
+    print("🎁 Part 2: \(exampleSolutionPart2)\n")
   }
 
   if !unwrappedDayImplementation.onlySolveExamples {
     let input = await getInput(day, session)
     if let input = input {
+      print("🎊 Solutions for Day \(day):")
       let startPart1 = Date()
       let solutionPart1 = await unwrappedDayImplementation.solvePart1(input)
       let endPart1 = Date()
       let durationPart1 = endPart1.timeIntervalSince(startPart1)
-      print("Solution day \(day), part 1: \(solutionPart1) (Time: \(durationPart1) seconds)")
+      print("🎯 Part 1: \(solutionPart1)")
+      print("⏱️ Solved in \(String(format: "%.3f", durationPart1))s (Quick as Rudolph!)")
 
       let startPart2 = Date()
       let solutionPart2 = await unwrappedDayImplementation.solvePart2(input)
       let endPart2 = Date()
       let durationPart2 = endPart2.timeIntervalSince(startPart2)
-      print("Solution day \(day), part 2: \(solutionPart2) (Time: \(durationPart2) seconds)")
+      print("🎯 Part 2: \(solutionPart2)")
+      print("⏱️ Solved in \(String(format: "%.3f", durationPart2))s (Fast as Santa's sleigh!)\n")
     }
   }
 }
@@ -95,7 +112,7 @@ if arguments.count > 1, let inputDay = Int(arguments[1]) {
 if let sessionFromFile = readSessionFromFile() {
   session = sessionFromFile
 } else {
-  print("No session file found.")
+  print("❄️ No session cookie found in Santa's workshop! ❄️")
   exit(1)
 }
 
