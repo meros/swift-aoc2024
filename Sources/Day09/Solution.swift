@@ -9,7 +9,7 @@ func parseInput(_ input: String) -> [Int] {
 
 public struct Solution: Day {
   public static var onlySolveExamples: Bool {
-    return false
+    return true
   }
 
   public static func solvePart1(_ input: String) async -> Int {
@@ -49,7 +49,26 @@ public struct Solution: Day {
   }
 
   public static func solvePart2(_ input: String) async -> Int {
-    let _ = parseInput(input)
-    return 0
+    let input = parseInput(input)
+    
+    var rawDisk: [Int?] = []
+    for i in 0..<input.count {
+      print(i % 2, input[i])
+      if i % 2 == 0 {
+        // Add file
+        rawDisk += Array(repeating: i / 2, count: input[i])
+      } else {
+        rawDisk += Array(repeating: nil, count: input[i])
+      }
+    }
+    
+    let checksum = zip((0...rawDisk.count), rawDisk).compactMap { (i, value) in
+      if let value = value {
+        return i * value
+      }
+      return nil
+    }.reduce(0, +)
+
+    return checksum
   }
 }
