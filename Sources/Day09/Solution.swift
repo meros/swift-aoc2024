@@ -4,13 +4,6 @@ import Utils
 func parseFragmentationMap(_ input: String) -> [Int] {
   input.compactMap { char in Int(String(char)) }
 }
-
-func calculateFileSystemChecksum(_ fragmentationLayout: [Int?]) -> Int {
-  zip((0...fragmentationLayout.count), fragmentationLayout).compactMap { (position, fileID) in
-    fileID.map { position * $0 }
-  }.reduce(0, +)
-}
-
 public struct Solution: Day {
   public static var onlySolveExamples: Bool {
     return false
@@ -53,40 +46,59 @@ public struct Solution: Day {
       rightCursor -= 1
     }
 
-    return calculateFileSystemChecksum(fragmentationLayout)
+    return zip((0...fragmentationLayout.count), fragmentationLayout).compactMap {
+      (position, fileID) in
+      fileID.map { position * $0 }
+    }.reduce(0, +)
   }
 
   public static func solvePart2(_ input: String) async -> Int {
     let fragmentSizes = parseFragmentationMap(input)
 
-    var fragmentationLayout: [Int?] = []
     var fileMetadata: [(fileID: Int, startPosition: Int, size: Int)] = []
 
+    var offset = 0
     for i in 0..<fragmentSizes.count {
       if i % 2 == 0 {
         let fileID = i / 2
-        fileMetadata.append((fileID, fragmentationLayout.count, fragmentSizes[i]))
-        fragmentationLayout += Array(repeating: fileID, count: fragmentSizes[i])
-      } else {
-        fragmentationLayout += Array(repeating: nil, count: fragmentSizes[i])
+        fileMetadata.append((fileID, offset, fragmentSizes[i]))
       }
+
+      offset += fragmentSizes[i]
     }
 
     // Move whole files to leftmost suitable gap
     for (fileID, fileStart, fileSize) in fileMetadata.reversed() {
-      if let targetPosition = Array(0..<fileStart).first(where: { position in
-        fragmentationLayout[position..<position + fileSize].allSatisfy { $0 == nil }
-      }) {
-        // Clear old file location and move to new position
-        fragmentationLayout.replaceSubrange(
-          fileStart..<fileStart + fileSize,
-          with: Array(repeating: nil, count: fileSize))
-        fragmentationLayout.replaceSubrange(
-          targetPosition..<targetPosition + fileSize,
-          with: Array(repeating: fileID, count: fileSize))
+      let targetPosition =
+        zip(fileMetadata.dropLast(), fileMetadata.dropFirst()).enumerated()
+        .first { (idx, element) in
+          let ((_, aStart, aSize), (_, bStart, _)) = element
+
+          let freeSpaceBetweenFiles = bStart - (aStart + aSize)
+          return fileStart >= aStart + aSize && fileSize <= freeSpaceBetweenFiles
+        }
+
+      if let targetPosition = targetPosition {
+        let (targetMetadataIdx, ((_, targetStart, targetSize), _)) = targetPosition
+
+        fileMetadata.remove(at: fileMetadata.firstIndex { $0.fileID == fileID }!)
+        fileMetadata.insert(
+          (
+            fileID: fileID,
+            startPosition: targetStart + targetSize,
+            size: fileSize
+          ), at: targetMetadataIdx + 1)
       }
     }
 
-    return calculateFileSystemChecksum(fragmentationLayout)
+    return fileMetadata.reduce(0) { (acc, file) in
+      let (fileID, startPosition, size) = file
+      // startPosition * fileID + (startPosition + 1) * fileID + ... + (startPosition + size - 1) * fileID
+
+      let innerSum = (startPosition + startPosition + (size - 1)) * size / 2
+      let totalSum = fileID * innerSum
+
+      return acc + totalSum
+    }
   }
 }
