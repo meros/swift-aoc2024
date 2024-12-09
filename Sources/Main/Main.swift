@@ -72,13 +72,17 @@ func runDay(_ day: Int) async {
       let solutionPart1 = await unwrappedDayImplementation.solvePart1(input)
       let endPart1 = Date()
       let durationPart1 = endPart1.timeIntervalSince(startPart1)
-      print("Solution day \(day), part 1: \(solutionPart1) (Time: \(durationPart1) seconds)")
+      print(
+        "Solution day \(day), part 1: \(solutionPart1) (🕒 \(String(format: "%.3f", durationPart1)) seconds)"
+      )
 
       let startPart2 = Date()
       let solutionPart2 = await unwrappedDayImplementation.solvePart2(input)
       let endPart2 = Date()
       let durationPart2 = endPart2.timeIntervalSince(startPart2)
-      print("Solution day \(day), part 2: \(solutionPart2) (Time: \(durationPart2) seconds)")
+      print(
+        "Solution day \(day), part 2: \(solutionPart2) (🕒 \(String(format: "%.3f", durationPart2)) seconds)"
+      )
     }
   }
 }
