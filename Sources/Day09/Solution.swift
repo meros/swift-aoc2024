@@ -1,8 +1,14 @@
 import Foundation
 import Utils
 
-func parseFragmentLengths(_ input: String) -> [Int] {
+func parseFragmentationMap(_ input: String) -> [Int] {
   input.compactMap { char in Int(String(char)) }
+}
+
+func calculateFileSystemChecksum(_ fragmentationLayout: [Int?]) -> Int {
+  zip((0...fragmentationLayout.count), fragmentationLayout).compactMap { (position, fileID) in
+    fileID.map { position * $0 }
+  }.reduce(0, +)
 }
 
 public struct Solution: Day {
@@ -11,105 +17,76 @@ public struct Solution: Day {
   }
 
   public static func solvePart1(_ input: String) async -> Int {
-    let fragmentLengths = parseFragmentLengths(input)
+    let fragmentSizes = parseFragmentationMap(input)
 
-    var diskBlocks: [Int?] = []
-    for i in 0..<fragmentLengths.count {
+    var fragmentationLayout: [Int?] = []
+    for i in 0..<fragmentSizes.count {
       if i % 2 == 0 {
-        // Add file blocks with file ID
+        // Initialize file blocks with file ID
         let fileID = i / 2
-        diskBlocks += Array(repeating: fileID, count: fragmentLengths[i])
+        fragmentationLayout += Array(repeating: fileID, count: fragmentSizes[i])
       } else {
-        // Add gap blocks
-        diskBlocks += Array(repeating: nil, count: fragmentLengths[i])
+        // Initialize gap blocks
+        fragmentationLayout += Array(repeating: nil, count: fragmentSizes[i])
       }
     }
 
-    // Compact files by moving blocks from end to first available gap
-    for i in 0..<diskBlocks.count {
-      let sourceIndex = diskBlocks.count - i - 1
-      for targetIndex in 0..<sourceIndex {
-        if diskBlocks[targetIndex] == nil {
-          let fileID = diskBlocks[sourceIndex]
-          diskBlocks[sourceIndex] = nil
-          diskBlocks[targetIndex] = fileID
-        }
+    // Move blocks one at a time from end to first gap
+    var rightCursor = fragmentationLayout.count - 1
+    var leftCursor = 0
+
+    while rightCursor > leftCursor {
+      if fragmentationLayout[leftCursor] != nil {
+        leftCursor += 1
+        continue
       }
+
+      if fragmentationLayout[rightCursor] == nil {
+        rightCursor -= 1
+        continue
+      }
+
+      // Move file block to gap
+      fragmentationLayout[leftCursor] = fragmentationLayout[rightCursor]
+      fragmentationLayout[rightCursor] = nil
+      leftCursor += 1
+      rightCursor -= 1
     }
 
-    // Calculate checksum
-    let checksum = zip((0...diskBlocks.count), diskBlocks).compactMap { (position, fileID) in
-      if let fileID = fileID {
-        return position * fileID
-      }
-      return nil
-    }.reduce(0, +)
-
-    return checksum
+    return calculateFileSystemChecksum(fragmentationLayout)
   }
 
   public static func solvePart2(_ input: String) async -> Int {
-    let fragmentLengths = parseFragmentLengths(input)
+    let fragmentSizes = parseFragmentationMap(input)
 
-    var diskBlocks: [Int?] = []
-    for i in 0..<fragmentLengths.count {
+    var fragmentationLayout: [Int?] = []
+    var fileMetadata: [(fileID: Int, startPosition: Int, size: Int)] = []
+
+    for i in 0..<fragmentSizes.count {
       if i % 2 == 0 {
-        // Add file blocks with file ID
         let fileID = i / 2
-        diskBlocks += Array(repeating: fileID, count: fragmentLengths[i])
+        fileMetadata.append((fileID, fragmentationLayout.count, fragmentSizes[i]))
+        fragmentationLayout += Array(repeating: fileID, count: fragmentSizes[i])
       } else {
-        // Add gap blocks
-        diskBlocks += Array(repeating: nil, count: fragmentLengths[i])
+        fragmentationLayout += Array(repeating: nil, count: fragmentSizes[i])
       }
     }
 
-    let dataDiskBlocks = zip(Array(0..<fragmentLengths.count), fragmentLengths).filter {
-      idx, fileSize in 
-      idx % 2 == 0
-    }.map {
-      idx, fileSize in
-      (fileId: idx / 2, fileSize: fileSize)
-    }   
-
-    for (fileId, fileSize ) in dataDiskBlocks.reversed() {
-
-      print("At", fileId)
-
-      let potentialSlice = diskBlocks[0..<diskBlocks.firstIndex {
-        if let block = $0 {
-          return block == fileId
-        }
-
-        return false
-      }!]
-      // Find first free to move this too
-      let firstSuitableIndex = zip(Array(0..<potentialSlice.count), potentialSlice).first { idx, block in
-        if block != nil {
-          return false          
-        }      
-
-        return diskBlocks[idx..<idx+fileSize].allSatisfy { $0 == nil }
-      }
-
-      if let firstSuitableIndex = firstSuitableIndex {
-        diskBlocks = diskBlocks.map { block in
-          if block == fileId {
-            return nil
-          }
-
-          return block
-        }
-        diskBlocks.replaceSubrange(firstSuitableIndex.0..<firstSuitableIndex.0+fileSize, with: Array(repeating: fileId, count: fileSize))        
+    // Move whole files to leftmost suitable gap
+    for (fileID, fileStart, fileSize) in fileMetadata.reversed() {
+      if let targetPosition = Array(0..<fileStart).first(where: { position in
+        fragmentationLayout[position..<position + fileSize].allSatisfy { $0 == nil }
+      }) {
+        // Clear old file location and move to new position
+        fragmentationLayout.replaceSubrange(
+          fileStart..<fileStart + fileSize,
+          with: Array(repeating: nil, count: fileSize))
+        fragmentationLayout.replaceSubrange(
+          targetPosition..<targetPosition + fileSize,
+          with: Array(repeating: fileID, count: fileSize))
       }
     }
 
-    let checksum = zip((0...diskBlocks.count), diskBlocks).compactMap { (i, value) in
-      if let value = value {
-        return i * value
-      }
-      return nil
-    }.reduce(0, +)
-
-    return checksum
+    return calculateFileSystemChecksum(fragmentationLayout)
   }
 }
