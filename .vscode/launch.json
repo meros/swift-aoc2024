@@ -58,18 +58,18 @@
             "type": "lldb",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:aoc2024}",
+            "cwd": "${workspaceFolder:swift-aoc2024}",
             "name": "Debug Main",
-            "program": "${workspaceFolder:aoc2024}/.build/debug/Main",
+            "program": "${workspaceFolder:swift-aoc2024}/.build/debug/Main",
             "preLaunchTask": "swift: Build Debug Main"
         },
         {
             "type": "lldb",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:aoc2024}",
+            "cwd": "${workspaceFolder:swift-aoc2024}",
             "name": "Release Main",
-            "program": "${workspaceFolder:aoc2024}/.build/release/Main",
+            "program": "${workspaceFolder:swift-aoc2024}/.build/release/Main",
             "preLaunchTask": "swift: Build Release Main"
         }
     ]
