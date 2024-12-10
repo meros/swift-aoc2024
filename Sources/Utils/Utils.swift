@@ -132,6 +132,14 @@ public struct Grid<T> {
   public func transposed() -> Grid<T> {
     Grid(values.transposed())
   }
+
+  public func forEach(_ body: (Position, T) -> Void) {
+    for y in 0..<height {
+      for x in 0..<width {
+        body(Position(x, y), values[y][x])
+      }
+    }
+  }
 }
 
 public struct Direction: Hashable {
