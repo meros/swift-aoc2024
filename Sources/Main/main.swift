@@ -7,6 +7,7 @@ import Day06
 import Day07
 import Day08
 import Day09
+import Day10
 import Foundation
 import Utils
 
@@ -60,6 +61,9 @@ func runDay(_ day: Int) async {
     dayImplementation = Day08.Solution.self
   case 9:
     dayImplementation = Day09.Solution.self
+  case 10:
+    dayImplementation = Day10.Solution.self
+
   default:
     dayImplementation = nil
   }

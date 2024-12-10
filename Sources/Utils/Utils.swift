@@ -125,6 +125,10 @@ public struct Grid<T> {
     position.x >= 0 && position.x < width && position.y >= 0 && position.y < height
   }
 
+  public subscript(position: Position) -> T {
+    values[position.y][position.x]
+  }
+
   public func transposed() -> Grid<T> {
     Grid(values.transposed())
   }
