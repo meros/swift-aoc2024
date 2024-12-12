@@ -41,17 +41,7 @@ struct PositionWithDirection: Hashable {
 
   mutating func backUpAndTurn() {
     position = position - direction
-    direction = nextDirection(direction)
-  }
-
-  private func nextDirection(_ current: Direction) -> Direction {
-    switch current {
-    case Direction.up: return Direction.right
-    case Direction.right: return Direction.down
-    case Direction.down: return Direction.left
-    case Direction.left: return Direction.up
-    default: return current
-    }
+    direction = Direction.allDirections.next(direction)
   }
 }
 

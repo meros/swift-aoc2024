@@ -1,42 +1,28 @@
 import Foundation
 import Utils
 
+let directions = Direction.allDirections
+
 func parseGardenMap(_ input: String) -> Grid<Int> {
   Grid(
     input.parseGrid().compactMap {
-      $0.compactMap {
-        guard $0.isLetter else { return nil }
-        return Int($0.uppercased().unicodeScalars.first!.value - Unicode.Scalar("A").value)
-      }
-    }
-  )
+      $0.compactMap { Int($0.uppercased().unicodeScalars.first!.value - Unicode.Scalar("A").value) }
+    })
 }
 
 func findRegion(_ position: Position, _ garden: Grid<Int>) -> Set<Position> {
-  let plantType = garden[position]
   var region: Set<Position> = [position]
+
   var toCheck = [position]
-
   while let current = toCheck.popLast() {
-    let adjacent = Direction.allDirections
+    toCheck.append(contentsOf: directions
       .map { current + $0 }
-      .filter { garden.inBounds($0) && garden[$0] == plantType && !region.contains($0) }
+      .filter { garden.inBounds($0) && garden[$0] == garden[position] && !region.contains($0) })
 
-    region.formUnion(adjacent)
-    toCheck.append(contentsOf: adjacent)
+    region.formUnion(toCheck)
   }
 
   return region
-}
-
-private func nextFenceDirection(_ current: Direction) -> Direction {
-  switch current {
-  case .up: return .right
-  case .right: return .down
-  case .down: return .left
-  case .left: return .up
-  default: return current
-  }
 }
 
 struct FenceSegment: Hashable {
@@ -49,71 +35,49 @@ struct FenceSegment: Hashable {
   }
 }
 
-func countFenceSides(_ region: Set<Position>, onlyCorners: Bool = false) -> Int {
-  let allFenceSegments = region.flatMap { position in
-    Direction.allDirections.filter { direction in
-      let adjacent = position + direction
-      return !region.contains(adjacent)
-    }.map { direction in
-      FenceSegment(position, direction)
-    }
+func countFenceSides(_ region: Set<Position>, mergeContinousSides: Bool = false) -> Int {
+  let allFenceSegments = region.flatMap { pos in
+    directions
+      .filter { !region.contains(pos + $0) }
+      .map { FenceSegment(pos, $0) }
   }
 
-  if !onlyCorners {
+  if !mergeContinousSides {
     return allFenceSegments.count
   }
 
   return allFenceSegments.filter {
-    fenceSegment in
     !allFenceSegments.contains(
-      FenceSegment(
-        fenceSegment.position + nextFenceDirection(fenceSegment.direction), fenceSegment.direction))
+      FenceSegment($0.position + directions.next($0.direction), $0.direction))
   }.count
 }
 
 extension Grid<Int> {
-  func forEachRegion(_ body: (_ region: Set<Position>) -> Void) {
+  func sumRegionValues(_ valueOfRegion: (_ region: Set<Position>) -> Int) -> Int {
+    var totalValue = 0
     var visited: Set<Position> = []
-
     self.forEach {
       pos, _ in
       guard !visited.contains(pos) else { return }
       let region = findRegion(pos, self)
-      body(region)
+      totalValue += valueOfRegion(region)
       visited.formUnion(region)
     }
+
+    return totalValue
   }
 }
+
 public struct Solution: Day {
   public static var onlySolveExamples: Bool { false }
 
   public static func solvePart1(_ input: String) async -> Int {
     let garden = parseGardenMap(input)
-
-    var totalFenceCost = 0
-
-    garden.forEachRegion { region in
-      let area = region.count
-      let perimeter = countFenceSides(region)
-
-      totalFenceCost += area * perimeter
-    }
-
-    return totalFenceCost
+    return garden.sumRegionValues { $0.count * countFenceSides($0) }
   }
 
   public static func solvePart2(_ input: String) async -> Int {
     let garden = parseGardenMap(input)
-
-    var totalFenceCost = 0
-
-    garden.forEachRegion { region in
-      let area = region.count
-      let sides = countFenceSides(region, onlyCorners: true)
-
-      totalFenceCost += area * sides
-    }
-
-    return totalFenceCost
+    return garden.sumRegionValues { $0.count * countFenceSides($0, mergeContinousSides: true) }
   }
 }

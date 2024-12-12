@@ -142,6 +142,22 @@ public struct Grid<T> {
   }
 }
 
+extension Collection where Element == Direction {
+  public func next(_ direction: Direction) -> Direction {
+    let itemIndex = self.firstIndex(of: direction)
+    if let itemIndex = itemIndex {
+      let nextIndex = index(after: itemIndex)
+      if nextIndex == endIndex {
+        return first ?? direction
+      }
+
+      return self[nextIndex]
+    }
+
+    return direction
+  }
+}
+
 public struct Direction: Hashable {
   public static let up = Direction(0, -1)
   public static let down = Direction(0, 1)
@@ -156,11 +172,6 @@ public struct Direction: Hashable {
   }
 
   public static let allDirections: [Direction] = [.up, .right, .down, .left]
-  public static let allDirectionsWithDiagonals: [Direction] = [
-    .up, .right, .down, .left,
-    Direction(1, 1), Direction(-1, -1),
-    Direction(1, -1), Direction(-1, 1),
-  ]
 
   public static func * (lhs: Direction, rhs: Int) -> Direction {
     return Direction(lhs.dx * rhs, lhs.dy * rhs)
