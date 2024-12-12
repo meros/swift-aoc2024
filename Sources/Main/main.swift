@@ -9,6 +9,7 @@ import Day08
 import Day09
 import Day10
 import Day11
+import Day12
 import Foundation
 import Utils
 
@@ -66,6 +67,8 @@ func runDay(_ day: Int) async {
     dayImplementation = Day10.Solution.self
   case 11:
     dayImplementation = Day11.Solution.self
+  case 12:
+    dayImplementation = Day12.Solution.self
   default:
     dayImplementation = nil
   }
@@ -85,8 +88,8 @@ func runDay(_ day: Int) async {
     print("🎁 Part 2: \(exampleSolutionPart2)\n")
   }
 
+  let input = await getInput(day, session)
   if !unwrappedDayImplementation.onlySolveExamples {
-    let input = await getInput(day, session)
     if let input = input {
       print("🎊 Solutions for Day \(day):")
       let startPart1 = Date()

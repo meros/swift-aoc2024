@@ -2,12 +2,12 @@ import Foundation
 import Utils
 
 func parseInitialStones(_ input: String) -> [Int] {
-  input.matches(of: #/([0-9]+)/#).compactMap { Int($0.output.1) }    
+  input.matches(of: #/([0-9]+)/#).compactMap { Int($0.output.1) }
 }
 
 func hasEvenNumberOfDigits(_ number: Int) -> Bool {
   let digitCount = Int(log10(Double(abs(number)))) + 1
-  return digitCount & 1 == 0 
+  return digitCount & 1 == 0
 }
 
 func transformStone(_ stoneNumber: Int) -> [Int] {
@@ -15,15 +15,15 @@ func transformStone(_ stoneNumber: Int) -> [Int] {
     // Rule 1: Replace 0 with 1
     return [1]
   }
-    
+
   if hasEvenNumberOfDigits(stoneNumber) {
     // Rule 2: Split even-digit numbers into two stones
     let stringValue = String(stoneNumber)
     let midIndex = stringValue.index(stringValue.startIndex, offsetBy: stringValue.count / 2)
     return [
       Int(stringValue[stringValue.startIndex..<midIndex])!,
-      Int(stringValue[midIndex..<stringValue.endIndex])!
-    ]        
+      Int(stringValue[midIndex..<stringValue.endIndex])!,
+    ]
   }
 
   // Rule 3: Multiply by 2024
@@ -31,7 +31,7 @@ func transformStone(_ stoneNumber: Int) -> [Int] {
 }
 
 func simulateBlink(_ stones: [Int]) -> [Int] {
-  stones.flatMap { transformStone($0) } 
+  stones.flatMap { transformStone($0) }
 }
 
 struct BlinkCacheKey: Hashable {
@@ -67,13 +67,13 @@ public struct Solution: Day {
     let initialStones = parseInitialStones(input)
     return initialStones.map {
       countStonesAfterBlinks($0, 25)
-    }.reduce(0, +)    
+    }.reduce(0, +)
   }
 
   public static func solvePart2(_ input: String) async -> Int {
     let initialStones = parseInitialStones(input)
     return initialStones.map {
       countStonesAfterBlinks($0, 75)
-    }.reduce(0, +)  
+    }.reduce(0, +)
   }
 }
