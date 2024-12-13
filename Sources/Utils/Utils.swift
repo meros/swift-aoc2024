@@ -166,7 +166,7 @@ public struct Direction: Hashable {
 
   public let dx: Int
   public let dy: Int
-  init(_ dx: Int, _ dy: Int) {
+  public init(_ dx: Int, _ dy: Int) {
     self.dx = dx
     self.dy = dy
   }
@@ -176,6 +176,7 @@ public struct Direction: Hashable {
   public static func * (lhs: Direction, rhs: Int) -> Direction {
     return Direction(lhs.dx * rhs, lhs.dy * rhs)
   }
+
 }
 
 extension Collection where Element: Collection {

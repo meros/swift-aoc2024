@@ -2,10 +2,11 @@
 import Foundation
 import PackageDescription
 
-let days = (1...12)
+let days = (1...13)
 
 let package = Package(
   name: "AdventOfCode2024",
+
   platforms: [
     .macOS(.v13)
   ],
@@ -37,7 +38,9 @@ let package = Package(
     + days.map { day in
       .target(
         name: String(format: "Day%02d", day),
-        dependencies: ["Utils"]
+        dependencies: [
+          "Utils"
+        ]
       )
     }
 )

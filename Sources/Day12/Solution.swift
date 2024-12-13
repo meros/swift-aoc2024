@@ -15,9 +15,11 @@ func findRegion(_ position: Position, _ garden: Grid<Int>) -> Set<Position> {
 
   var toCheck = [position]
   while let current = toCheck.popLast() {
-    toCheck.append(contentsOf: directions
-      .map { current + $0 }
-      .filter { garden.inBounds($0) && garden[$0] == garden[position] && !region.contains($0) })
+    toCheck.append(
+      contentsOf:
+        directions
+        .map { current + $0 }
+        .filter { garden.inBounds($0) && garden[$0] == garden[position] && !region.contains($0) })
 
     region.formUnion(toCheck)
   }
