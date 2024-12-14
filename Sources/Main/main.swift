@@ -11,6 +11,7 @@ import Day10
 import Day11
 import Day12
 import Day13
+import Day14
 import Foundation
 import Utils
 
@@ -72,16 +73,20 @@ func runDay(_ day: Int) async {
     dayImplementation = Day12.Solution.self
   case 13:
     dayImplementation = Day13.Solution.self
+  case 14:
+    dayImplementation = Day14.Solution.self
   default:
     dayImplementation = nil
   }
+
+  let exampleInput = getExampleInput(day)
+  let input = await getInput(day, session)
 
   guard let unwrappedDayImplementation = dayImplementation else {
     print("🎅 Ho ho ho! Day \(day) is still wrapped up under the tree! 🎁")
     return
   }
 
-  let exampleInput = getExampleInput(day)
   if let exampleInput = exampleInput {
     print("🌟 Testing with example input for Day \(day):")
     let exampleSolutionPart1 = await unwrappedDayImplementation.solvePart1(exampleInput)
@@ -91,7 +96,6 @@ func runDay(_ day: Int) async {
     print("🎁 Part 2: \(exampleSolutionPart2)\n")
   }
 
-  let input = await getInput(day, session)
   if !unwrappedDayImplementation.onlySolveExamples {
     if let input = input {
       print("🎊 Solutions for Day \(day):")
