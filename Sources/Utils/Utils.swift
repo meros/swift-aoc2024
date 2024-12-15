@@ -110,7 +110,35 @@ extension String {
   }
 }
 
-public struct Grid<T: Hashable>: Hashable {
+public struct Grid<T>: Sequence {
+  public struct Iterator: IteratorProtocol {
+    private let grid: Grid
+    private var currentX = 0
+    private var currentY = 0
+
+    init(grid: Grid) {
+      self.grid = grid
+    }
+
+    public mutating func next() -> (Position, T)? {
+      guard currentY < grid.height else { return nil }
+      let value = grid.values[currentY][currentX]
+      let position = Position(currentX, currentY)
+
+      currentX += 1
+      if currentX == grid.width - 1 {
+        currentX = 0
+        currentY += 1
+      }
+
+      return (position, value)
+    }
+  }
+
+  public func makeIterator() -> Iterator {
+    return Iterator(grid: self)
+  }
+
   public var values: [[T]]
   public let width: Int
   public let height: Int
@@ -136,14 +164,6 @@ public struct Grid<T: Hashable>: Hashable {
 
   public func transposed() -> Grid<T> {
     Grid(values.transposed())
-  }
-
-  public func forEach(_ body: (Position, T) -> Void) {
-    for y in 0..<height {
-      for x in 0..<width {
-        body(Position(x, y), values[y][x])
-      }
-    }
   }
 }
 
