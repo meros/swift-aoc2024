@@ -25,7 +25,12 @@ let package = Package(
         name: String(format: "Day%02d", day),
         targets: [String(format: "Day%02d", day)])
     },
-  dependencies: [],
+  dependencies: [
+    .package(
+      url: "https://github.com/apple/swift-collections.git",
+      .upToNextMinor(from: "1.1.0")  // or `.upToNextMajor
+    )
+  ],
   targets: [
     .target(
       name: "Utils"
@@ -39,7 +44,8 @@ let package = Package(
       .target(
         name: String(format: "Day%02d", day),
         dependencies: [
-          "Utils"
+          "Utils",
+          .product(name: "Collections", package: "swift-collections")
         ]
       )
     }
