@@ -2,159 +2,115 @@ import Collections
 import Foundation
 import Utils
 
-let debugPrint = false
-
-struct Game : Hashable {
-  var map: Grid<Character>
-  var instructions: [Direction]
+struct Warehouse: Hashable {
+  var layout: Grid<Character>
+  var robotMoves: [Direction]
+  var robotPos: Position
 }
 
-func parseInput(_ input: String, _ widen: Bool = false) -> Game {
-  let parts = input.split(separator: "\n\n")
-
-  let part1 = parts[0]
-  let part2 = parts[1]
-
-  var widerPart2 = ""
-  for c in part1 {
-    switch c {
-    case ".":
-      widerPart2 += ".."
-    case "#":
-      widerPart2 += "##"
-    case "@":
-      widerPart2 += "@."
-    case "O":
-      widerPart2 += "[]"
-    case "\n":
-      widerPart2 += "\n"
-    default:
-      widerPart2 += "XX"
-    }
-  }
-
-  let grid = Grid(
-    (widen ? widerPart2 : String(part1)).parseGrid())
-
-  let directions = part2.compactMap {
-    switch $0 {
-    case "^":
-      return Direction(0, -1)
-    case "v":
-      return Direction(0, 1)
-    case "<":
-      return Direction(-1, 0)
-    case ">":
-      return Direction(1, 0)
-    default:
-      return nil
-    }
-  }
-
-  return Game(map: grid, instructions: directions)
-}
-
-public struct Solution: Day {
-  public static var onlySolveExamples: Bool {
-    return false
-  }
-
-  public static func solvePart1(_ input: String) async -> Int {
-    var game = parseInput(input)
-
-    solve(&game)
-
-    var score = 0
-    game.map.forEach { p, s in
-      if s == "O" {
-        score += (p.x + p.y * 100)
-      }
-    }
-
-    return score
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    var game = parseInput(input, true)
-    solve(&game)
-
-    var score = 0
-    game.map.forEach { p, s in
-      if s == "[" {
-        score += (p.x + p.y * 100)
-      }
-    }
-
-    return score
-  }
-}
-
-func solve(_ game: inout Game) {
-  while game.instructions.count > 0 {
-    let instruction = game.instructions.removeFirst()
-
-    if debugPrint {
-      for y in 0..<game.map.height {
-        for x in 0..<game.map.width {
-          print(game.map[Position(x, y)], terminator: "")
-        }
-        print()
-      }
-      print()
-    }
-
-    var playerPosition: Position? = nil
-    game.map.forEach { p, c in
-      if c == "@" {
-        playerPosition = p
-      }
-    }
-
-    let operations = push(&game, playerPosition!, instruction)
-    for operation in operations {
-      game.map[operation.to] = game.map[operation.from]
-      game.map[operation.from] = "."
-    }
-  }
-}
-
-struct Operation: Hashable {
+struct BoxMovement: Hashable {
   let from: Position
   let to: Position
 }
 
-func push(_ game: inout Game, _ from: Position, _ direction: Direction)
-  -> OrderedSet<Operation>
+private func parseWarehouse(_ input: String, useWideLayout: Bool = false) -> Warehouse {
+  let parts = input.split(separator: "\n\n")
+  let layout = parts[0].flatMap {
+    switch $0 {
+    case ".": ".."
+    case "#": "##"
+    case "@": "@."
+    case "O": "[]"
+    case "\n": "\n"
+    default: "XX"
+    }
+  }
+
+  let grid = Grid((useWideLayout ? String(layout) : String(parts[0])).parseGrid())
+  let moves = parts[1].compactMap { char -> Direction? in
+    switch char {
+    case "^": .init(0, -1)
+    case "v": .init(0, 1)
+    case "<": .init(-1, 0)
+    case ">": .init(1, 0)
+    default: nil
+    }
+  }
+
+  var robotPos: Position? = nil
+  grid.forEach { pos, c in
+    if c == "@" {
+      robotPos = pos
+    }
+  }
+
+  return Warehouse(layout: grid, robotMoves: moves, robotPos: robotPos!)
+}
+
+private func simulateRobot(_ warehouse: inout Warehouse) {
+  while !warehouse.robotMoves.isEmpty {
+    let move = warehouse.robotMoves.removeFirst()
+    let movements = moveBox(&warehouse, warehouse.robotPos, move)
+
+    for movement in movements {
+      warehouse.layout[movement.to] = warehouse.layout[movement.from]
+      warehouse.layout[movement.from] = "."
+    }
+  }
+}
+
+private func moveBox(_ warehouse: inout Warehouse, _ from: Position, _ direction: Direction)
+  -> OrderedSet<BoxMovement>
 {
   let to = from + direction
-  let operation = Operation(from: from, to: to)
+  let movement = BoxMovement(from: from, to: to)
 
-  // Cannot move
-  if !game.map.inBounds(to) || game.map[to] == "#" {
+  if !warehouse.layout.inBounds(to) || warehouse.layout[to] == "#" {
     return []
   }
 
-  // Ok to move!
-  if game.map[to] == "." {
-    return [operation]
+  if warehouse.layout[to] == "." {
+    return [movement]
   }
 
-  // Only boxes left
-  var compoundPush = [to]
-  if direction.dy != 0 && game.map[to] == "[" {
-    compoundPush += [to + Direction(1, 0)]
+  var boxPositions = [to]
+  if direction.dy != 0 {
+    if warehouse.layout[to] == "[" {
+      boxPositions.append(to + Direction(1, 0))
+    }
+    if warehouse.layout[to] == "]" {
+      boxPositions.append(to + Direction(-1, 0))
+    }
   }
 
-  if direction.dy != 0 && game.map[to] == "]" {
-    compoundPush += [to + Direction(-1, 0)]
-  }
+  let movements = boxPositions.map { moveBox(&warehouse, $0, direction) }
+  guard movements.allSatisfy({ !$0.isEmpty }) else { return [] }
 
-  let operations = compoundPush.map { to in push(&game, to, direction) }
-  guard operations.allSatisfy({ $0.count > 0 }) else {
-    return []
-  }
-
-  var result = operations.reduce(into: OrderedSet<Operation>([])) { $0.append(contentsOf: $1) }
-  result.append(contentsOf: [operation])
+  var result = movements.reduce(into: OrderedSet<BoxMovement>()) { $0.append(contentsOf: $1) }
+  result.append(movement)
   return result
+}
+
+public struct Solution: Day {
+  public static func solvePart1(_ input: String) async -> Int {
+    var warehouse = parseWarehouse(input)
+    simulateRobot(&warehouse)
+    return calculateGPSScore(warehouse)
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    var warehouse = parseWarehouse(input, useWideLayout: true)
+    simulateRobot(&warehouse)
+    return calculateGPSScore(warehouse)
+  }
+}
+
+private func calculateGPSScore(_ warehouse: Warehouse) -> Int {
+  var score = 0
+  warehouse.layout.forEach { pos, c in
+    if c == "O" || c == "[" {
+      score += pos.x + pos.y * 100
+    }
+  }
+  return score
 }

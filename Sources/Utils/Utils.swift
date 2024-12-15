@@ -110,7 +110,7 @@ extension String {
   }
 }
 
-public struct Grid<T : Hashable> : Hashable {
+public struct Grid<T: Hashable>: Hashable {
   public var values: [[T]]
   public let width: Int
   public let height: Int
