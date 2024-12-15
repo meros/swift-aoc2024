@@ -126,7 +126,12 @@ public struct Grid<T> {
   }
 
   public subscript(position: Position) -> T {
-    values[position.y][position.x]
+    get {
+      values[position.y][position.x]
+    }
+    set {
+      values[position.y][position.x] = newValue
+    }
   }
 
   public func transposed() -> Grid<T> {
