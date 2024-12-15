@@ -45,7 +45,7 @@ let package = Package(
         name: String(format: "Day%02d", day),
         dependencies: [
           "Utils",
-          .product(name: "Collections", package: "swift-collections")
+          .product(name: "Collections", package: "swift-collections"),
         ]
       )
     }

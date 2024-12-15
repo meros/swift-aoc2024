@@ -1,19 +1,11 @@
+import Collections
 import Foundation
 import Utils
-import Collections
 
-enum Space: Character {
-  case free = "."
-  case block = "#"
-  case player = "@"
-  case box = "O"
-  case boxLeft = "["
-  case boxRight = "]"
-  case unknown = "X"
-}
+let debugPrint = false
 
-struct Game {
-  var map: Grid<Space>
+struct Game : Hashable {
+  var map: Grid<Character>
   var instructions: [Direction]
 }
 
@@ -26,42 +18,23 @@ func parseInput(_ input: String, _ widen: Bool = false) -> Game {
   var widerPart2 = ""
   for c in part1 {
     switch c {
-    case Space.free.rawValue:
-      widerPart2 += "\(Space.free.rawValue)\(Space.free.rawValue)"
-    case Space.block.rawValue:
-      widerPart2 += "\(Space.block.rawValue)\(Space.block.rawValue)"
-    case Space.player.rawValue:
-      widerPart2 += "\(Space.player.rawValue)\(Space.free.rawValue)"
-    case Space.box.rawValue:
-      widerPart2 += "\(Space.boxLeft.rawValue)\(Space.boxRight.rawValue)"
+    case ".":
+      widerPart2 += ".."
+    case "#":
+      widerPart2 += "##"
+    case "@":
+      widerPart2 += "@."
+    case "O":
+      widerPart2 += "[]"
     case "\n":
       widerPart2 += "\n"
     default:
       widerPart2 += "XX"
     }
   }
-  
+
   let grid = Grid(
-    (widen ? widerPart2 : String(part1)).parseGrid().map {
-      $0.map {
-        switch $0 {
-        case Space.block.rawValue:
-          return Space.block
-        case Space.free.rawValue:
-          return Space.free
-        case Space.player.rawValue:
-          return Space.player
-        case Space.box.rawValue:
-          return Space.box
-        case Space.boxLeft.rawValue:
-          return Space.boxLeft
-        case Space.boxRight.rawValue:
-          return Space.boxRight
-        default:
-          return Space.unknown
-        }
-      }
-    })
+    (widen ? widerPart2 : String(part1)).parseGrid())
 
   let directions = part2.compactMap {
     switch $0 {
@@ -89,41 +62,11 @@ public struct Solution: Day {
   public static func solvePart1(_ input: String) async -> Int {
     var game = parseInput(input)
 
-    while game.instructions.count > 0 {
-      let instruction = game.instructions.removeFirst()
-
-      var playerPosition: Position? = nil
-      game.map.forEach { p, c in
-        if c == Space.player {
-          playerPosition = p
-        }
-      }
-
-      for i in 1..<max(game.map.width, game.map.height) {
-        let checkPos = playerPosition! + instruction * i
-        if !game.map.inBounds(checkPos) || game.map[checkPos] == Space.block {
-          break
-        }
-
-        if game.map[checkPos] == Space.box {
-          continue
-        }
-
-        if game.map[checkPos] == Space.free {
-          for j in stride(from: i, through: 1, by: -1) {
-            game.map[playerPosition! + instruction * j] =
-              game.map[playerPosition! + instruction * (j - 1)]
-          }
-
-          game.map[playerPosition!] = Space.free
-          break
-        }
-      }
-    }
+    solve(&game)
 
     var score = 0
     game.map.forEach { p, s in
-      if s == Space.box {
+      if s == "O" {
         score += (p.x + p.y * 100)
       }
     }
@@ -133,31 +76,45 @@ public struct Solution: Day {
 
   public static func solvePart2(_ input: String) async -> Int {
     var game = parseInput(input, true)
-
-    while game.instructions.count > 0 {
-      let instruction = game.instructions.removeFirst()
-      var playerPosition: Position? = nil
-      game.map.forEach { p, c in
-        if c == Space.player {
-          playerPosition = p
-        }
-      }
-
-      let operations = push(&game, playerPosition!, instruction)
-      for operation in operations {
-        game.map[operation.to] = game.map[operation.from]
-        game.map[operation.from] = Space.free
-      }
-    }
+    solve(&game)
 
     var score = 0
     game.map.forEach { p, s in
-      if s == Space.boxLeft {
+      if s == "[" {
         score += (p.x + p.y * 100)
       }
     }
 
     return score
+  }
+}
+
+func solve(_ game: inout Game) {
+  while game.instructions.count > 0 {
+    let instruction = game.instructions.removeFirst()
+
+    if debugPrint {
+      for y in 0..<game.map.height {
+        for x in 0..<game.map.width {
+          print(game.map[Position(x, y)], terminator: "")
+        }
+        print()
+      }
+      print()
+    }
+
+    var playerPosition: Position? = nil
+    game.map.forEach { p, c in
+      if c == "@" {
+        playerPosition = p
+      }
+    }
+
+    let operations = push(&game, playerPosition!, instruction)
+    for operation in operations {
+      game.map[operation.to] = game.map[operation.from]
+      game.map[operation.from] = "."
+    }
   }
 }
 
@@ -170,58 +127,34 @@ func push(_ game: inout Game, _ from: Position, _ direction: Direction)
   -> OrderedSet<Operation>
 {
   let to = from + direction
+  let operation = Operation(from: from, to: to)
 
   // Cannot move
-  if !game.map.inBounds(to) || game.map[to] == Space.block {
+  if !game.map.inBounds(to) || game.map[to] == "#" {
     return []
   }
 
   // Ok to move!
-  if game.map[to] == Space.free {
-    return [Operation(from: from, to: to)]
+  if game.map[to] == "." {
+    return [operation]
   }
 
-  // Handle up/down
-  if direction.dy != 0 && game.map[to] == Space.boxLeft {
-    let pushLeftOperation = push(&game, to, direction)
-    let pushRightOperation = push(&game, to + Direction(1, 0), direction)
-
-    if pushLeftOperation.count > 0 && pushRightOperation.count > 0 {
-      var result = pushLeftOperation
-      result.append(contentsOf: pushRightOperation)
-      result.append(contentsOf: [Operation(from:from, to:to)])
-      return result
-    } else {
-      return []
-    }
+  // Only boxes left
+  var compoundPush = [to]
+  if direction.dy != 0 && game.map[to] == "[" {
+    compoundPush += [to + Direction(1, 0)]
   }
 
-  if direction.dy != 0 && game.map[to] == Space.boxRight {
-    let pushLeftOperation = push(&game, to + Direction(-1, 0), direction)
-    let pushRightOperation = push(&game, to, direction)
-
-    if pushLeftOperation.count > 0 && pushRightOperation.count > 0 {
-      var result = pushLeftOperation
-      result.append(contentsOf: pushRightOperation)
-      result.append(contentsOf: [Operation(from:from, to:to)])      
-      return result
-    } else {
-      return []
-    }
+  if direction.dy != 0 && game.map[to] == "]" {
+    compoundPush += [to + Direction(-1, 0)]
   }
 
-  // Handle right/left
-  if direction.dx != 0 && (game.map[to] == Space.boxLeft || game.map[to] == Space.boxRight) {
-    let pushOperation = push(&game, to, direction)
-
-    if pushOperation.count > 0 {
-      var result = pushOperation
-      result.append(contentsOf: [Operation(from:from, to:to)])      
-      return result
-    } else {
-      return []
-    }
+  let operations = compoundPush.map { to in push(&game, to, direction) }
+  guard operations.allSatisfy({ $0.count > 0 }) else {
+    return []
   }
 
-  return []
+  var result = operations.reduce(into: OrderedSet<Operation>([])) { $0.append(contentsOf: $1) }
+  result.append(contentsOf: [operation])
+  return result
 }
