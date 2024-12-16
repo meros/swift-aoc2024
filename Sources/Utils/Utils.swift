@@ -167,7 +167,7 @@ public struct Grid<T>: Sequence {
   }
 }
 
-extension Collection where Element == Direction {
+extension BidirectionalCollection where Element == Direction {
   public func next(_ direction: Direction) -> Direction {
     let itemIndex = self.firstIndex(of: direction)
     if let itemIndex = itemIndex {
@@ -177,6 +177,19 @@ extension Collection where Element == Direction {
       }
 
       return self[nextIndex]
+    }
+
+    return direction
+  }
+
+  public func prev(_ direction: Direction) -> Direction {
+    let itemIndex = self.firstIndex(of: direction)
+    if let itemIndex = itemIndex {
+      if itemIndex == startIndex {
+        return last ?? direction
+      }
+
+      return self[index(before: itemIndex)]
     }
 
     return direction
