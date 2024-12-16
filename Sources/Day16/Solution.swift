@@ -45,13 +45,29 @@ struct State: Comparable, Hashable, Equatable {
       lhs.pos == rhs.pos && lhs.direction == rhs.direction
   }
 
-  static private func heuristic(goal: Position, pos: Position, cost: Int) -> Int {
+  static private func heuristic(goal: Position, pos: Position, direction: Direction, cost: Int)
+    -> Int
+  {
     let manhattanDistance = abs(goal.x - pos.x) + abs(goal.y - pos.y)
 
     let generalDirectionToGoal = Direction(
       (goal.x - pos.x).signum(), (goal.y - pos.y).signum())
 
-    let turns = (generalDirectionToGoal.dx != 0 && generalDirectionToGoal.dy != 0) ? 1 : 0
+    var turns = 0
+    // Diagonal?
+    if generalDirectionToGoal.dx != 0 && generalDirectionToGoal.dy != 0 {
+      // Need to turn once to get there
+      turns += 1
+      // Might need to turn once to get going
+      turns +=
+        (direction == Direction(0, generalDirectionToGoal.dy)
+          || direction == Direction(generalDirectionToGoal.dx, 0)) ? 0 : 1
+    } else {
+      // 180 needed to get going?
+      turns += (direction == generalDirectionToGoal * -1) ? 2 : 0
+      // 90 degrees needed to get going?
+      turns += abs(direction.dx) == abs(generalDirectionToGoal.dy) ? 1 : 0
+    }
 
     return manhattanDistance + turns * 1000 + cost
   }
@@ -62,7 +78,7 @@ struct State: Comparable, Hashable, Equatable {
     self.goal = goal
     self.cost = cost
 
-    self.heuristicValue = State.heuristic(goal: goal, pos: pos, cost: cost)
+    self.heuristicValue = State.heuristic(goal: goal, pos: pos, direction: direction, cost: cost)
   }
 
   // Hashed state
@@ -73,11 +89,15 @@ struct State: Comparable, Hashable, Equatable {
   let goal: Position
   let cost: Int
 
-  // Calculated value 
+  // Calculated value
   let heuristicValue: Int
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 102460
+
+  public static var facitPart2: Int = 527
+
   public static var onlySolveExamples: Bool {
     return false
   }
@@ -133,7 +153,9 @@ func solveMazeGetClosedList(_ maze: Maze) -> Set<State> {
       pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
   ])
 
+  var numConsidered = 0
   while let state = openList.popMin() {
+    numConsidered += 1
     closedList.insert(state)
     if state.pos == state.goal {
       break
@@ -143,6 +165,7 @@ func solveMazeGetClosedList(_ maze: Maze) -> Set<State> {
       contentsOf: getNextStates(state).filter({ maze.map[$0.pos] && !closedList.contains($0) }))
   }
 
+  print("Considered \(numConsidered) states")
   return closedList
 }
 

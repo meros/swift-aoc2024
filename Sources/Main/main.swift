@@ -104,20 +104,22 @@ func runDay(_ day: Int) async {
 
   if !unwrappedDayImplementation.onlySolveExamples {
     if let input = input {
-      print("🎊 Solutions for Day \(day):")
+      print("🎄 Solutions for Day \(day):")
       let startPart1 = Date()
       let solutionPart1 = await unwrappedDayImplementation.solvePart1(input)
+      let facitPart1 = unwrappedDayImplementation.facitPart1
       let endPart1 = Date()
       let durationPart1 = endPart1.timeIntervalSince(startPart1)
       print("🎯 Part 1: \(solutionPart1)")
-      print("⏱️ Solved in \(String(format: "%.3f", durationPart1))s (Quick as Rudolph!)")
+      print("⏱️ Solved in \(String(format: "%.3f", durationPart1))s \(solutionPart1 == facitPart1 ? "(🎅 Correct!)" : "(❌ Incorrect!)")")
 
       let startPart2 = Date()
       let solutionPart2 = await unwrappedDayImplementation.solvePart2(input)
+      let facitPart2 = unwrappedDayImplementation.facitPart2
       let endPart2 = Date()
       let durationPart2 = endPart2.timeIntervalSince(startPart2)
       print("🎯 Part 2: \(solutionPart2)")
-      print("⏱️ Solved in \(String(format: "%.3f", durationPart2))s (Fast as Santa's sleigh!)\n")
+      print("⏱️ Solved in \(String(format: "%.3f", durationPart2))s \(solutionPart2 == facitPart2 ? "(🎅 Correct!)" : "(❌ Incorrect!)")")
     }
   }
 }

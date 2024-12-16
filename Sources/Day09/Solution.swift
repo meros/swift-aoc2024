@@ -5,6 +5,10 @@ func parseFragmentationMap(_ input: String) -> [Int] {
   input.compactMap { char in Int(String(char)) }
 }
 public struct Solution: Day {
+  public static var facitPart1: Int = 6_320_029_754_031
+
+  public static var facitPart2: Int = 6_347_435_485_773
+
   public static var onlySolveExamples: Bool {
     return false
   }

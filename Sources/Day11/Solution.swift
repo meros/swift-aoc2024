@@ -59,6 +59,10 @@ func countStonesAfterBlinks(_ stoneNumber: Int, _ blinksRemaining: Int) -> Int {
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 203609
+
+  public static var facitPart2: Int = 240_954_878_211_138
+
   public static var onlySolveExamples: Bool {
     return false
   }

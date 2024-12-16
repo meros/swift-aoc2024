@@ -28,6 +28,10 @@ func getZero(_ _: PatternType.Match) -> Int {
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 185_797_128
+
+  public static var facitPart2: Int = 89_798_695
+
   public static func solvePart1(_ input: String) async -> Int {
     input.matches(of: pattern).map(getProduct).reduce(0, +)
   }

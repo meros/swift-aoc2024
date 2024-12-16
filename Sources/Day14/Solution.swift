@@ -48,6 +48,10 @@ private func countRobotsInQuadrants(_ positions: [Position]) -> [Int] {
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 229_421_808
+
+  public static var facitPart2: Int = 6577
+
   public static var onlySolveExamples: Bool { shouldSolveExamplesOnly }
 
   public static func solvePart1(_ input: String) async -> Int {

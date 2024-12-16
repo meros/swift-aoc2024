@@ -29,6 +29,10 @@ func rec2(solution: Int, partSolution: Int, values: Array<Int>.SubSequence) -> B
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 4_998_764_814_652
+
+  public static var facitPart2: Int = 37_598_910_447_546
+
   public static func solvePart1(_ input: String) async -> Int {
     let parsedInput = parseInput(input)
 

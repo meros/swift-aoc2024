@@ -117,6 +117,10 @@ private func moveBox(
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 1_465_152
+
+  public static var facitPart2: Int = 1_511_259
+
   public static var onlySolveExamples: Bool { false }
   public static func solvePart1(_ input: String) async -> Int {
     var warehouse = parseWarehouse(input)

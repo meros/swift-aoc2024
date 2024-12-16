@@ -58,6 +58,10 @@ actor PossiblePositionsActor {
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 5095
+
+  public static var facitPart2: Int = 1933
+
   public static func solvePart1(_ input: String) async -> Int {
     let map = parseInput(input)
     return walkMap(map).count + 1

@@ -8,6 +8,10 @@ public func parseInput(_ input: String) -> [[Int]] {
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 3_569_916
+
+  public static var facitPart2: Int = 26_407_426
+
   public static func solvePart1(_ input: String) async -> Int {
     let parsedInput = parseInput(input).map { $0.sorted() }.transposed()
     let distances = parsedInput.map { abs($0[0] - $0[1]) }
@@ -21,4 +25,5 @@ public struct Solution: Day {
     }
     return parsedInput[0].map { $0 * (lastMap[$0] ?? 0) }.reduce(0, +)
   }
+
 }

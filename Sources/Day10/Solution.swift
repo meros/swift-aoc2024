@@ -23,6 +23,10 @@ func traverseTrail(
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 733
+
+  public static var facitPart2: Int = 1514
+
   public static var onlySolveExamples: Bool { false }
 
   public static func solvePart1(_ input: String) async -> Int {

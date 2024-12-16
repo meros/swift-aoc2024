@@ -8,6 +8,10 @@ func parseInput(_ input: String) -> [[Substring.Element]] {
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 2578
+
+  public static var facitPart2: Int = 1972
+
   public static func solvePart1(_ input: String) async -> Int {
     let parsedInput = parseInput(input)
 

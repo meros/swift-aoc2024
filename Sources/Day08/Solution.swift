@@ -2,6 +2,10 @@ import Foundation
 import Utils
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 320
+
+  public static var facitPart2: Int = 1157
+
   public static func solvePart1(_ input: String) async -> Int {
     let (antennaGroups, grid) = parseAntennaMap(input)
     return countAntinodes(antennaGroups, grid, 1, 1)

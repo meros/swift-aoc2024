@@ -71,6 +71,10 @@ extension Grid<Int> {
 }
 
 public struct Solution: Day {
+  public static var facitPart1: Int = 1424006
+
+  public static var facitPart2: Int = 858684
+
   public static var onlySolveExamples: Bool { false }
 
   public static func solvePart1(_ input: String) async -> Int {

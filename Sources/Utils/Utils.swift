@@ -4,6 +4,8 @@ public protocol Day {
   static func solvePart1(_ input: String) async -> Int
   static func solvePart2(_ input: String) async -> Int
   static var onlySolveExamples: Bool { get }
+  static var facitPart1: Int { get }
+  static var facitPart2: Int { get }
 }
 
 extension Day {
@@ -183,11 +185,11 @@ public struct Direction: Hashable {
   public static let allDirections: [Direction] = [.up, .right, .down, .left]
 
   public func rotateRight() -> Direction {
-    Direction(dy, -dx)
+    Direction(-dy, dx)
   }
 
   public func rotateLeft() -> Direction {
-    Direction(-dy, dx)
+    Direction(dy, -dx)
   }
 
   public static func * (lhs: Direction, rhs: Int) -> Direction {
