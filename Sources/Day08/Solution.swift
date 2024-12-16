@@ -26,10 +26,11 @@ func parseAntennaMap(_ input: String) -> ([[Position]], Grid<Character>) {
   // Use Grid dimensions instead of manual counting
   for x in 0..<grid.width {
     for y in 0..<grid.height {
-      if grid.values[x][y] != "." {
-        var positions = antennaPositions[grid.values[x][y]] ?? []
-        positions.append(Position(x, y))
-        antennaPositions[grid.values[x][y]] = positions
+      let pos = Position(x, y)
+      if grid[pos] != "." {
+        var positions = antennaPositions[grid[pos]] ?? []
+        positions.append(pos)
+        antennaPositions[grid[pos]] = positions
       }
     }
   }

@@ -4,6 +4,25 @@ import Utils
 
 let debugPrint = false
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 1_465_152
+
+  public static var facitPart2: Int = 1_511_259
+
+  public static var onlySolveExamples: Bool { false }
+  public static func solvePart1(_ input: String) async -> Int {
+    var warehouse = parseWarehouse(input)
+    simulateRobot(&warehouse)
+    return calculateGPSScore(warehouse)
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    var warehouse = parseWarehouse(input, useWideLayout: true)
+    simulateRobot(&warehouse)
+    return calculateGPSScore(warehouse)
+  }
+}
+
 struct Warehouse {
   var layout: Grid<Character>
   var robotMoves: [Direction]
@@ -12,8 +31,8 @@ struct Warehouse {
 
 private func parseWarehouse(_ input: String, useWideLayout: Bool = false) -> Warehouse {
   let parts = input.split(separator: "\n\n")
-  let layouString = String(parts[0])
-  let wideLayoutString = layouString.flatMap {
+  let layoutString = String(parts[0])
+  let wideLayoutString = layoutString.flatMap {
     switch $0 {
     case ".": ".."
     case "#": "##"
@@ -24,7 +43,7 @@ private func parseWarehouse(_ input: String, useWideLayout: Bool = false) -> War
     }
   }
 
-  let layout = Grid((useWideLayout ? String(wideLayoutString) : layouString).parseGrid())
+  let layout = Grid((useWideLayout ? String(wideLayoutString) : layoutString).parseGrid())
   let robotMoves = parts[1].compactMap { char -> Direction? in
     switch char {
     case "^": .init(0, -1)
@@ -99,25 +118,6 @@ private func moveBox(
 
   guard movements.count == boxPositions.count + 1 else { return nil }
   return movements.reduce(into: OrderedSet([])) { $0.formUnion($1) }
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 1_465_152
-
-  public static var facitPart2: Int = 1_511_259
-
-  public static var onlySolveExamples: Bool { false }
-  public static func solvePart1(_ input: String) async -> Int {
-    var warehouse = parseWarehouse(input)
-    simulateRobot(&warehouse)
-    return calculateGPSScore(warehouse)
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    var warehouse = parseWarehouse(input, useWideLayout: true)
-    simulateRobot(&warehouse)
-    return calculateGPSScore(warehouse)
-  }
 }
 
 private func calculateGPSScore(_ warehouse: Warehouse) -> Int {

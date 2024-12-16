@@ -93,15 +93,6 @@ func runDay(_ day: Int) async {
     return
   }
 
-  if let exampleInput = exampleInput {
-    print("🌟 Testing with example input for Day \(day):")
-    let exampleSolutionPart1 = await unwrappedDayImplementation.solvePart1(exampleInput)
-    print("🎁 Part 1: \(exampleSolutionPart1)")
-
-    let exampleSolutionPart2 = await unwrappedDayImplementation.solvePart2(exampleInput)
-    print("🎁 Part 2: \(exampleSolutionPart2)\n")
-  }
-
   if !unwrappedDayImplementation.onlySolveExamples {
     if let input = input {
       print("🎄 Solutions for Day \(day):")
@@ -110,9 +101,8 @@ func runDay(_ day: Int) async {
       let facitPart1 = unwrappedDayImplementation.facitPart1
       let endPart1 = Date()
       let durationPart1 = endPart1.timeIntervalSince(startPart1)
-      print("🎯 Part 1: \(solutionPart1)")
       print(
-        "⏱️ Solved in \(String(format: "%.3f", durationPart1))s \(solutionPart1 == facitPart1 ? "(🎅 Correct!)" : "(❌ Incorrect!)")"
+        "🎯 Part 1: \(solutionPart1) ⏱️ Solved in \(String(format: "%.3f", durationPart1))s \(solutionPart1 == facitPart1 ? "(🎅 Correct!)" : "(❌ Incorrect!)")"
       )
 
       let startPart2 = Date()
@@ -120,21 +110,29 @@ func runDay(_ day: Int) async {
       let facitPart2 = unwrappedDayImplementation.facitPart2
       let endPart2 = Date()
       let durationPart2 = endPart2.timeIntervalSince(startPart2)
-      print("🎯 Part 2: \(solutionPart2)")
       print(
-        "⏱️ Solved in \(String(format: "%.3f", durationPart2))s \(solutionPart2 == facitPart2 ? "(🎅 Correct!)" : "(❌ Incorrect!)")"
+        "🎯 Part 2: \(solutionPart2) ⏱️ Solved in \(String(format: "%.3f", durationPart2))s \(solutionPart2 == facitPart2 ? "(🎅 Correct!)" : "(❌ Incorrect!)")"
       )
+    }
+  } else {
+    if let exampleInput = exampleInput {
+      print("🌟 Testing with example input for Day \(day):")
+      let exampleSolutionPart1 = await unwrappedDayImplementation.solvePart1(exampleInput)
+      print("🎁 Part 1: \(exampleSolutionPart1)")
+
+      let exampleSolutionPart2 = await unwrappedDayImplementation.solvePart2(exampleInput)
+      print("🎁 Part 2: \(exampleSolutionPart2)\n")
     }
   }
 }
 
 let arguments = CommandLine.arguments
-let day: Int
+let day: Int?
 
 if arguments.count > 1, let inputDay = Int(arguments[1]) {
   day = inputDay
 } else {
-  day = getCurrentDay()
+  day = nil
 }
 
 if let sessionFromFile = readSessionFromFile() {
@@ -144,4 +142,10 @@ if let sessionFromFile = readSessionFromFile() {
   exit(1)
 }
 
-await runDay(day)
+if let day = day {
+  await runDay(day)
+} else {
+  for day in 1...16 {
+    await runDay(day)
+  }
+}

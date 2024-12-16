@@ -3,6 +3,38 @@ import Utils
 
 let shouldSolveExamplesOnly = false
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 229_421_808
+
+  public static var facitPart2: Int = 6577
+
+  public static var onlySolveExamples: Bool { shouldSolveExamplesOnly }
+
+  public static func solvePart1(_ input: String) async -> Int {
+    let robots = parseRobots(input)
+    let positions = Array(calculateRobotPositions(robots, at: 100))
+    return countRobotsInQuadrants(positions).reduce(1, *)
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    let robots = parseRobots(input)
+
+    for time in 0..<floorHeight * floorWidth {
+      let positions = Set(calculateRobotPositions(robots, at: time))
+
+      // Check for vertical line of 10 robots (Christmas tree pattern)
+      if positions.contains(where: { basePos in
+        (0...9).allSatisfy { offset in
+          positions.contains(basePos + Direction(0, offset))
+        }
+      }) {
+        return time
+      }
+    }
+    return 0
+  }
+}
+
 private let floorWidth = 101
 private let floorHeight = 103
 
@@ -43,46 +75,5 @@ private func countRobotsInQuadrants(_ positions: [Position]) -> [Int] {
     positions.filter { pos in
       pos.x >= quad.0 && pos.x < quad.2 && pos.y >= quad.1 && pos.y < quad.3
     }.count
-  }
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 229_421_808
-
-  public static var facitPart2: Int = 6577
-
-  public static var onlySolveExamples: Bool { shouldSolveExamplesOnly }
-
-  public static func solvePart1(_ input: String) async -> Int {
-    let robots = parseRobots(input)
-    let positions = Array(calculateRobotPositions(robots, at: 100))
-
-    for y in 0..<floorHeight {
-      for x: Int in 0..<floorWidth {
-        let count = positions.count { $0 == Position(x, y) }
-        print(count, terminator: "")
-      }
-      print()
-    }
-
-    return countRobotsInQuadrants(positions).reduce(1, *)
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    let robots = parseRobots(input)
-
-    for time in 0..<floorHeight * floorWidth {
-      let positions = Set(calculateRobotPositions(robots, at: time))
-
-      // Check for vertical line of 10 robots (Christmas tree pattern)
-      if positions.contains(where: { basePos in
-        (0...9).allSatisfy { offset in
-          positions.contains(basePos + Direction(0, offset))
-        }
-      }) {
-        return time
-      }
-    }
-    return 0
   }
 }

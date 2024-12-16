@@ -141,7 +141,7 @@ public struct Grid<T>: Sequence {
     return Iterator(grid: self)
   }
 
-  public var values: [[T]]
+  private var values: [[T]]
   public let width: Int
   public let height: Int
 

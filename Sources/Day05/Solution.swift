@@ -9,6 +9,29 @@ struct PageOrderRule: Hashable {
 typealias PageOrderRules = Set<PageOrderRule>
 typealias PageUpdates = [[Int]]
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 5208
+
+  public static var facitPart2: Int = 6732
+
+  public static func solvePart1(_ input: String) async -> Int {
+    let (updates, rules) = parseInput(input)
+
+    return updates.filter { isValidUpdate($0, rules) }
+      .map { $0[($0.count - 1) / 2] }
+      .reduce(0, +)
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    let (updates, rules) = parseInput(input)
+
+    return updates.filter { !isValidUpdate($0, rules) }
+      .map { $0.sorted(by: getSortingPredicate(rules)) }
+      .map { $0[($0.count - 1) / 2] }
+      .reduce(0, +)
+  }
+}
+
 func parseInput(_ input: String) -> (PageUpdates, PageOrderRules) {
   let parts = input.split(separator: "\n\n")
 
@@ -31,27 +54,4 @@ func isValidUpdate(_ update: [Int], _ rules: PageOrderRules) -> Bool {
 
 func getSortingPredicate(_ rules: PageOrderRules) -> (Int, Int) -> Bool {
   { page1, page2 in rules.contains(PageOrderRule(first: page1, second: page2)) }
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 5208
-
-  public static var facitPart2: Int = 6732
-
-  public static func solvePart1(_ input: String) async -> Int {
-    let (updates, rules) = parseInput(input)
-
-    return updates.filter { isValidUpdate($0, rules) }
-      .map { $0[($0.count - 1) / 2] }
-      .reduce(0, +)
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    let (updates, rules) = parseInput(input)
-
-    return updates.filter { !isValidUpdate($0, rules) }
-      .map { $0.sorted(by: getSortingPredicate(rules)) }
-      .map { $0[($0.count - 1) / 2] }
-      .reduce(0, +)
-  }
 }

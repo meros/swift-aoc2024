@@ -1,12 +1,6 @@
 import Foundation
 import Utils
 
-public func parseInput(_ input: String) -> [[Int]] {
-  input.split(separator: "\n").map {
-    $0.split(separator: " ").compactMap { Int($0) }
-  }.transposed()
-}
-
 public struct Solution: Day {
   public static var facitPart1: Int = 3_569_916
 
@@ -25,5 +19,10 @@ public struct Solution: Day {
     }
     return parsedInput[0].map { $0 * (lastMap[$0] ?? 0) }.reduce(0, +)
   }
+}
 
+public func parseInput(_ input: String) -> [[Int]] {
+  input.split(separator: "\n").map {
+    $0.split(separator: " ").compactMap { Int($0) }
+  }.transposed()
 }

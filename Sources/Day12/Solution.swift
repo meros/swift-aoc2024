@@ -1,6 +1,24 @@
 import Foundation
 import Utils
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 1_424_006
+
+  public static var facitPart2: Int = 858684
+
+  public static var onlySolveExamples: Bool { false }
+
+  public static func solvePart1(_ input: String) async -> Int {
+    let garden = parseGardenMap(input)
+    return garden.sumRegionValues { $0.count * countFenceSides($0) }
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    let garden = parseGardenMap(input)
+    return garden.sumRegionValues { $0.count * countFenceSides($0, mergeContinousSides: true) }
+  }
+}
+
 let directions = Direction.allDirections
 
 func parseGardenMap(_ input: String) -> Grid<Int> {
@@ -67,23 +85,5 @@ extension Grid<Int> {
     }
 
     return totalValue
-  }
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 1_424_006
-
-  public static var facitPart2: Int = 858684
-
-  public static var onlySolveExamples: Bool { false }
-
-  public static func solvePart1(_ input: String) async -> Int {
-    let garden = parseGardenMap(input)
-    return garden.sumRegionValues { $0.count * countFenceSides($0) }
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    let garden = parseGardenMap(input)
-    return garden.sumRegionValues { $0.count * countFenceSides($0, mergeContinousSides: true) }
   }
 }

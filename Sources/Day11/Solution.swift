@@ -1,6 +1,30 @@
 import Foundation
 import Utils
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 203609
+
+  public static var facitPart2: Int = 240_954_878_211_138
+
+  public static var onlySolveExamples: Bool {
+    return false
+  }
+
+  public static func solvePart1(_ input: String) async -> Int {
+    let initialStones = parseInitialStones(input)
+    return initialStones.map {
+      countStonesAfterBlinks($0, 25)
+    }.reduce(0, +)
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    let initialStones = parseInitialStones(input)
+    return initialStones.map {
+      countStonesAfterBlinks($0, 75)
+    }.reduce(0, +)
+  }
+}
+
 func parseInitialStones(_ input: String) -> [Int] {
   input.matches(of: #/([0-9]+)/#).compactMap { Int($0.output.1) }
 }
@@ -56,28 +80,4 @@ func countStonesAfterBlinks(_ stoneNumber: Int, _ blinksRemaining: Int) -> Int {
 
   blinkCache[key] = totalNewStones
   return totalNewStones
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 203609
-
-  public static var facitPart2: Int = 240_954_878_211_138
-
-  public static var onlySolveExamples: Bool {
-    return false
-  }
-
-  public static func solvePart1(_ input: String) async -> Int {
-    let initialStones = parseInitialStones(input)
-    return initialStones.map {
-      countStonesAfterBlinks($0, 25)
-    }.reduce(0, +)
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    let initialStones = parseInitialStones(input)
-    return initialStones.map {
-      countStonesAfterBlinks($0, 75)
-    }.reduce(0, +)
-  }
 }

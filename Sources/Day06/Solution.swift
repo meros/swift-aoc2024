@@ -1,62 +1,6 @@
 import Foundation
 import Utils
 
-func parseInput(_ input: String) -> Map {
-  let grid = input.parseGrid().map { $0 }.transposed()
-
-  var startingPosition = PositionWithDirection(x: 0, y: 0, direction: .down)
-  for x in 0..<grid.count {
-    for y in 0..<grid[0].count {
-      if grid[x][y] == "^" {
-        startingPosition = PositionWithDirection(x: x, y: y, direction: .up)
-      }
-    }
-  }
-
-  return Map(grid: grid, startingPosition: startingPosition)
-}
-
-struct Map {
-  let startingPosition: PositionWithDirection
-  var grid: Grid<Substring.Element>
-
-  init(grid: [[Substring.Element]], startingPosition: PositionWithDirection) {
-    self.grid = Grid(grid)
-    self.startingPosition = startingPosition
-  }
-}
-
-struct PositionWithDirection: Hashable {
-  var position: Position
-  var direction: Direction
-
-  init(x: Int, y: Int, direction: Direction) {
-    self.position = Position(x, y)
-    self.direction = direction
-  }
-
-  mutating func move() {
-    position = position + direction
-  }
-
-  mutating func backUpAndTurn() {
-    position = position - direction
-    direction = direction.rotateRight()
-  }
-}
-
-actor PossiblePositionsActor {
-  var positions: Set<Position>
-
-  init(_ positions: Set<Position>) {
-    self.positions = positions
-  }
-
-  func pop() -> Position? {
-    positions.popFirst()
-  }
-}
-
 public struct Solution: Day {
   public static var facitPart1: Int = 5095
 
@@ -80,14 +24,14 @@ public struct Solution: Day {
             var loopCount = 0
 
             while let pos = await actor.pop() {
-              localMap.grid.values[pos.x][pos.y] = "#"
+              localMap.grid[pos] = "#"
 
               if checkInfinite(localMap, &turns) {
                 loopCount += 1
               }
 
               turns.removeAll(keepingCapacity: true)
-              localMap.grid.values[pos.x][pos.y] = "."
+              localMap.grid[pos] = "."
             }
 
             return loopCount
@@ -96,6 +40,50 @@ public struct Solution: Day {
         return await group.reduce(0, +)
       }
     }.result.get()
+  }
+}
+
+func parseInput(_ input: String) -> Map {
+  let grid = Grid(input.parseGrid().map { $0 })
+
+  let startingPosition =
+    grid.first { pos, value in
+      value == "^"
+    }.map { pos, value in
+      PositionWithDirection(position: pos, direction: .up)
+    }!
+
+  return Map(startingPosition: startingPosition, grid: (grid))
+}
+
+struct Map {
+  let startingPosition: PositionWithDirection
+  var grid: Grid<Substring.Element>
+}
+
+struct PositionWithDirection: Hashable {
+  var position: Position
+  var direction: Direction
+
+  mutating func move() {
+    position = position + direction
+  }
+
+  mutating func backUpAndTurn() {
+    position = position - direction
+    direction = direction.rotateRight()
+  }
+}
+
+actor PossiblePositionsActor {
+  var positions: Set<Position>
+
+  init(_ positions: Set<Position>) {
+    self.positions = positions
+  }
+
+  func pop() -> Position? {
+    positions.popFirst()
   }
 }
 
@@ -110,7 +98,7 @@ func walkMap(_ map: Map) -> Set<Position> {
       return visited
     }
 
-    if map.grid.values[current.position.x][current.position.y] == "#" {
+    if map.grid[current.position] == "#" {
       current.backUpAndTurn()
     }
 
@@ -128,7 +116,7 @@ func checkInfinite(_ map: Map, _ turns: inout Set<PositionWithDirection>) -> Boo
       return false
     }
 
-    if map.grid.values[current.position.x][current.position.y] == "#" {
+    if map.grid[current.position] == "#" {
       current.backUpAndTurn()
       if !turns.insert(current).inserted {
         return true

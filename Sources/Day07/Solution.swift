@@ -1,33 +1,6 @@
 import Foundation
 import Utils
 
-func rec(solution: Int, partSolution: Int, values: Array<Int>.SubSequence) -> Bool {
-  let firstValue = values.first
-  let restValues = values.dropFirst()
-
-  if let firstValue = firstValue {
-    return rec(solution: solution, partSolution: partSolution + firstValue, values: restValues)
-      || rec(solution: solution, partSolution: partSolution * firstValue, values: restValues)
-  }
-
-  return partSolution == solution
-}
-
-func rec2(solution: Int, partSolution: Int, values: Array<Int>.SubSequence) -> Bool {
-  let firstValue = values.first
-  let restValues = values.dropFirst()
-
-  if let firstValue = firstValue {
-    return rec2(solution: solution, partSolution: partSolution + firstValue, values: restValues)
-      || rec2(solution: solution, partSolution: partSolution * firstValue, values: restValues)
-      || rec2(
-        solution: solution, partSolution: Int(String(partSolution) + String(firstValue))!,
-        values: restValues)
-  }
-
-  return partSolution == solution
-}
-
 public struct Solution: Day {
   public static var facitPart1: Int = 4_998_764_814_652
 
@@ -60,4 +33,31 @@ func parseInput(_ input: String) -> [(Int, [Int])] {
       let lineParts = $0.split(separator: ":")
       return (Int(lineParts[0])!, lineParts[1].split(separator: " ").map { Int($0)! })
     }
+}
+
+func rec(solution: Int, partSolution: Int, values: Array<Int>.SubSequence) -> Bool {
+  let firstValue = values.first
+  let restValues = values.dropFirst()
+
+  if let firstValue = firstValue {
+    return rec(solution: solution, partSolution: partSolution + firstValue, values: restValues)
+      || rec(solution: solution, partSolution: partSolution * firstValue, values: restValues)
+  }
+
+  return partSolution == solution
+}
+
+func rec2(solution: Int, partSolution: Int, values: Array<Int>.SubSequence) -> Bool {
+  let firstValue = values.first
+  let restValues = values.dropFirst()
+
+  if let firstValue = firstValue {
+    return rec2(solution: solution, partSolution: partSolution + firstValue, values: restValues)
+      || rec2(solution: solution, partSolution: partSolution * firstValue, values: restValues)
+      || rec2(
+        solution: solution, partSolution: Int(String(partSolution) + String(firstValue))!,
+        values: restValues)
+  }
+
+  return partSolution == solution
 }

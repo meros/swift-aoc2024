@@ -2,6 +2,59 @@ import Collections
 import Foundation
 import Utils
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 102460
+
+  public static var facitPart2: Int = 527
+
+  public static var onlySolveExamples: Bool {
+    return false
+  }
+
+  public static func solvePart1(_ input: String) async -> Int {
+    let maze: Maze = parseMaze(input)
+
+    return solveMazeGetClosedList(maze).first {
+      $0.pos == maze.endPos
+    }!.cost
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    let maze: Maze = parseMaze(input)
+
+    let closedList = solveMazeGetClosedList(maze)
+
+    // Backtrack from goal to start, finding all optimal paths
+    let endState = closedList.first { $0.pos == maze.endPos }!
+    let startState = State(
+      pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
+
+    var openBacktrackStates = Set([
+      endState
+    ])
+    var closedBacktrackState = Set<State>([])
+
+    while let backtrackState = openBacktrackStates.popFirst() {
+      closedBacktrackState.insert(backtrackState)
+      if backtrackState == startState {
+        continue
+      }
+
+      openBacktrackStates.formUnion(
+        getPrevStates(backtrackState).filter {
+          if closedBacktrackState.contains($0) {
+            return false
+          }
+
+          guard let index = closedList.firstIndex(of: $0) else { return false }
+          return closedList[index].cost == $0.cost
+        })
+    }
+
+    return Set(closedBacktrackState.map { $0.pos }).count
+  }
+}
+
 struct Maze {
   let map: Grid<Bool>
   let startPos: Position
@@ -91,59 +144,6 @@ struct State: Comparable, Hashable, Equatable {
 
   // Calculated value
   let heuristicValue: Int
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 102460
-
-  public static var facitPart2: Int = 527
-
-  public static var onlySolveExamples: Bool {
-    return false
-  }
-
-  public static func solvePart1(_ input: String) async -> Int {
-    let maze: Maze = parseMaze(input)
-
-    return solveMazeGetClosedList(maze).first {
-      $0.pos == maze.endPos
-    }!.cost
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    let maze: Maze = parseMaze(input)
-
-    let closedList = solveMazeGetClosedList(maze)
-
-    // Backtrack from goal to start, finding all optimal paths
-    let endState = closedList.first { $0.pos == maze.endPos }!
-    let startState = State(
-      pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
-
-    var openBacktrackStates = Set([
-      endState
-    ])
-    var closedBacktrackState = Set<State>([])
-
-    while let backtrackState = openBacktrackStates.popFirst() {
-      closedBacktrackState.insert(backtrackState)
-      if backtrackState == startState {
-        continue
-      }
-
-      openBacktrackStates.formUnion(
-        getPrevStates(backtrackState).filter {
-          if closedBacktrackState.contains($0) {
-            return false
-          }
-
-          guard let index = closedList.firstIndex(of: $0) else { return false }
-          return closedList[index].cost == $0.cost
-        })
-    }
-
-    return Set(closedBacktrackState.map { $0.pos }).count
-  }
 }
 
 func solveMazeGetClosedList(_ maze: Maze) -> Set<State> {

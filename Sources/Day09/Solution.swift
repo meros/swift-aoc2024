@@ -1,9 +1,6 @@
 import Foundation
 import Utils
 
-func parseFragmentationMap(_ input: String) -> [Int] {
-  input.compactMap { char in Int(String(char)) }
-}
 public struct Solution: Day {
   public static var facitPart1: Int = 6_320_029_754_031
 
@@ -105,4 +102,8 @@ public struct Solution: Day {
       return acc + totalSum
     }
   }
+}
+
+func parseFragmentationMap(_ input: String) -> [Int] {
+  input.compactMap { char in Int(String(char)) }
 }

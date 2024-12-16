@@ -3,6 +3,27 @@ import Utils
 
 let shouldSolveExamplesOnly = false
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 39996
+
+  public static var facitPart2: Int = 73_267_584_326_867
+
+  public static var onlySolveExamples: Bool { shouldSolveExamplesOnly }
+
+  public static func solvePart1(_ input: String) async -> Int {
+    parseInput(input).compactMap { solve($0) }.reduce(0, +)
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    parseInput(input).map {
+      Game(
+        a: $0.a,
+        b: $0.b,
+        prize: $0.prize + Direction(10_000_000_000_000, 10_000_000_000_000))
+    }.compactMap { solve($0) }.reduce(0, +)
+  }
+}
+
 func parseGame(_ gameString: String.SubSequence) -> Game? {
   let rows = gameString.split(separator: "\n")
   if let aMatch = String(rows[0]).firstMatch(of: #/Button A: X\+(?<x>[0-9]+), Y\+(?<y>[0-9]+)/#),
@@ -46,25 +67,4 @@ func solve(_ game: Game) -> Int? {
   }
 
   return nil
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 39996
-
-  public static var facitPart2: Int = 73_267_584_326_867
-
-  public static var onlySolveExamples: Bool { shouldSolveExamplesOnly }
-
-  public static func solvePart1(_ input: String) async -> Int {
-    parseInput(input).compactMap { solve($0) }.reduce(0, +)
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    parseInput(input).map {
-      Game(
-        a: $0.a,
-        b: $0.b,
-        prize: $0.prize + Direction(10_000_000_000_000, 10_000_000_000_000))
-    }.compactMap { solve($0) }.reduce(0, +)
-  }
 }

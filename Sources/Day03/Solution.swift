@@ -1,6 +1,26 @@
 import Foundation
 import Utils
 
+public struct Solution: Day {
+  public static var facitPart1: Int = 185_797_128
+
+  public static var facitPart2: Int = 89_798_695
+
+  public static func solvePart1(_ input: String) async -> Int {
+    input.matches(of: pattern).map(getProduct).reduce(0, +)
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    input.matches(of: pattern).reduce(
+      into: (prod: getProduct, sum: 0)
+    ) { result, match in
+      result.prod = match.do != nil ? getProduct : result.prod
+      result.prod = match.dont != nil ? getZero : result.prod
+      result.sum += result.prod(match)
+    }.sum
+  }
+}
+
 typealias PatternType = Regex<
   (
     Substring, mul: Substring?, factor1: Substring?, factor2: Substring?, do: Substring?,
@@ -25,24 +45,4 @@ func getProduct(_ match: PatternType.Match) -> Int {
 
 func getZero(_ _: PatternType.Match) -> Int {
   return 0
-}
-
-public struct Solution: Day {
-  public static var facitPart1: Int = 185_797_128
-
-  public static var facitPart2: Int = 89_798_695
-
-  public static func solvePart1(_ input: String) async -> Int {
-    input.matches(of: pattern).map(getProduct).reduce(0, +)
-  }
-
-  public static func solvePart2(_ input: String) async -> Int {
-    input.matches(of: pattern).reduce(
-      into: (prod: getProduct, sum: 0)
-    ) { result, match in
-      result.prod = match.do != nil ? getProduct : result.prod
-      result.prod = match.dont != nil ? getZero : result.prod
-      result.sum += result.prod(match)
-    }.sum
-  }
 }

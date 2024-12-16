@@ -1,27 +1,6 @@
 import Foundation
 import Utils
 
-func parseInput(_ input: String) -> Grid<Int> {
-  Grid(input.parseGrid().compactMap { $0.compactMap { Int(String($0)) } })
-}
-
-func traverseTrail(
-  _ grid: Grid<Int>,
-  from current: Position,
-  trailhead: Position,
-  onPeakReached: (_ trailhead: Position, _ peak: Position) -> Void
-) {
-  guard grid[current] < 9 else {
-    onPeakReached(trailhead, current)
-    return
-  }
-
-  Direction.allDirections
-    .map { current + $0 }
-    .filter { grid.inBounds($0) && grid[$0] == grid[current] + 1 }
-    .forEach { traverseTrail(grid, from: $0, trailhead: trailhead, onPeakReached: onPeakReached) }
-}
-
 public struct Solution: Day {
   public static var facitPart1: Int = 733
 
@@ -56,4 +35,25 @@ public struct Solution: Day {
 
     return trailheadToPathCount.values.reduce(0, +)
   }
+}
+
+func parseInput(_ input: String) -> Grid<Int> {
+  Grid(input.parseGrid().compactMap { $0.compactMap { Int(String($0)) } })
+}
+
+func traverseTrail(
+  _ grid: Grid<Int>,
+  from current: Position,
+  trailhead: Position,
+  onPeakReached: (_ trailhead: Position, _ peak: Position) -> Void
+) {
+  guard grid[current] < 9 else {
+    onPeakReached(trailhead, current)
+    return
+  }
+
+  Direction.allDirections
+    .map { current + $0 }
+    .filter { grid.inBounds($0) && grid[$0] == grid[current] + 1 }
+    .forEach { traverseTrail(grid, from: $0, trailhead: trailhead, onPeakReached: onPeakReached) }
 }

@@ -1,12 +1,6 @@
 import Foundation
 import Utils
 
-func parseInput(_ input: String) -> [[Substring.Element]] {
-  input.split(separator: "\n").map { line in
-    line.map { $0 }
-  }
-}
-
 public struct Solution: Day {
   public static var facitPart1: Int = 2578
 
@@ -63,5 +57,11 @@ public struct Solution: Day {
     }
 
     return numFound
+  }
+}
+
+func parseInput(_ input: String) -> [[Substring.Element]] {
+  input.split(separator: "\n").map { line in
+    line.map { $0 }
   }
 }
