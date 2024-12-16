@@ -21,15 +21,14 @@ private func parseRobots(_ input: String) -> [SecurityRobot] {
     }
 }
 
-private func calculateRobotPositions(_ robots: [SecurityRobot], at time: Int) -> Set<Position> {
-  Set(
-    robots.map { robot in
-      let newPos = robot.position + robot.velocity * time
-      return Position(
-        (newPos.x % floorWidth + floorWidth) % floorWidth,
-        (newPos.y % floorHeight + floorHeight) % floorHeight
-      )
-    })
+private func calculateRobotPositions(_ robots: [SecurityRobot], at time: Int) -> [Position] {
+  robots.map { robot in
+    let newPos = robot.position + robot.velocity * time
+    return Position(
+      (newPos.x % floorWidth + floorWidth) % floorWidth,
+      (newPos.y % floorHeight + floorHeight) % floorHeight
+    )
+  }
 }
 
 private func countRobotsInQuadrants(_ positions: [Position]) -> [Int] {
@@ -57,6 +56,15 @@ public struct Solution: Day {
   public static func solvePart1(_ input: String) async -> Int {
     let robots = parseRobots(input)
     let positions = Array(calculateRobotPositions(robots, at: 100))
+
+    for y in 0..<floorHeight {
+      for x: Int in 0..<floorWidth {
+        let count = positions.count { $0 == Position(x, y) }
+        print(count, terminator: "")
+      }
+      print()
+    }
+
     return countRobotsInQuadrants(positions).reduce(1, *)
   }
 
@@ -64,7 +72,7 @@ public struct Solution: Day {
     let robots = parseRobots(input)
 
     for time in 0..<floorHeight * floorWidth {
-      let positions = calculateRobotPositions(robots, at: time)
+      let positions = Set(calculateRobotPositions(robots, at: time))
 
       // Check for vertical line of 10 robots (Christmas tree pattern)
       if positions.contains(where: { basePos in
