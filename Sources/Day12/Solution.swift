@@ -71,7 +71,7 @@ extension Grid<Int> {
 }
 
 public struct Solution: Day {
-  public static var facitPart1: Int = 1424006
+  public static var facitPart1: Int = 1_424_006
 
   public static var facitPart2: Int = 858684
 

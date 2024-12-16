@@ -124,11 +124,11 @@ public struct Grid<T>: Sequence {
 
     public mutating func next() -> (Position, T)? {
       guard currentY < grid.height else { return nil }
-      let value = grid.values[currentY][currentX]
       let position = Position(currentX, currentY)
+      let value = grid[position]
 
       currentX += 1
-      if currentX == grid.width - 1 {
+      if currentX == grid.width {
         currentX = 0
         currentY += 1
       }
