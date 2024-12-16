@@ -30,8 +30,8 @@ func parseMaze(_ input: String) -> Maze {
   return Maze(map: map, startPos: startPos, endPos: endPos)
 }
 
-struct FullState: Comparable, Hashable, Equatable {
-  static func < (lhs: FullState, rhs: FullState) -> Bool {
+struct State: Comparable, Hashable, Equatable {
+  static func < (lhs: State, rhs: State) -> Bool {
     lhs.heuristic() < rhs.heuristic()
   }
 
@@ -40,31 +40,34 @@ struct FullState: Comparable, Hashable, Equatable {
     hasher.combine(direction)
   }
 
-  static func == (lhs: FullState, rhs: FullState) -> Bool {
+  static func == (lhs: State, rhs: State) -> Bool {
     return
       lhs.pos == rhs.pos && lhs.direction == rhs.direction
   }
 
   private func heuristic() -> Int {
-    // Manhattan distance
-    let distance = abs(goal.x - pos.x) + abs(goal.y - pos.y)
-    
-    var turns = 0
-    let globalDirection = Direction(
+    let manhattanDistance = abs(goal.x - pos.x) + abs(goal.y - pos.y)
+
+    let generalDirectionToGoal = Direction(
       (goal.x - pos.x).signum(), (goal.y - pos.y).signum())
-    if globalDirection.dx != 0 && globalDirection.dy != 0 {
+
+    var turns = 0
+    // Diagonal?
+    if generalDirectionToGoal.dx != 0 && generalDirectionToGoal.dy != 0 {
+      // Need to turn once to get there
       turns += 1
+      // Might need to turn once to get going
       turns +=
-        (direction == Direction(0, globalDirection.dy)
-          || direction == Direction(globalDirection.dx, 0)) ? 0 : 1
+        (direction == Direction(0, generalDirectionToGoal.dy)
+          || direction == Direction(generalDirectionToGoal.dx, 0)) ? 0 : 1
     } else {
-      // Opposit direction?
-      turns += (direction == globalDirection * -1) ? 2 : 0
-      // 90 degree off?
-      turns += abs(direction.dx) == abs(globalDirection.dy) ? 1 : 0
+      // 180 needed to get going?
+      turns += (direction == generalDirectionToGoal * -1) ? 2 : 0
+      // 90 degrees needed to get going?
+      turns += abs(direction.dx) == abs(generalDirectionToGoal.dy) ? 1 : 0
     }
 
-    return distance + turns * 1000 + cost
+    return manhattanDistance + turns * 1000 + cost
   }
 
   // Hashed state
@@ -84,64 +87,7 @@ public struct Solution: Day {
   public static func solvePart1(_ input: String) async -> Int {
     let maze: Maze = parseMaze(input)
 
-    var closedList = Set<FullState>([])
-    var openList = Heap<FullState>([
-      FullState(
-        pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
-    ])
-
-    while let fullState = openList.popMin() {
-      if false {
-        for y in 0..<maze.map.height {
-          for x in 0..<maze.map.width {
-            let pos = Position(x, y)
-            if pos == fullState.pos {
-              switch fullState.direction {
-              case Direction(1, 0): print(">", terminator: "")
-              case Direction(-1, 0): print("<", terminator: "")
-              case Direction(0, -1): print("^", terminator: "")
-              case Direction(0, 1): print("v", terminator: "")
-              default: print("?", terminator: "")
-              }
-            } else {
-              print(maze.map[pos] ? " " : "#", terminator: "")
-            }
-          }
-          print()
-        }
-      }
-
-      closedList.insert(fullState)
-      if fullState.pos == fullState.goal {
-        break
-      }
-
-      openList.insert(
-        contentsOf: [
-          FullState(
-            pos: fullState.pos + fullState.direction,
-            direction: fullState.direction,
-
-            goal: fullState.goal,
-            cost: fullState.cost + 1),
-          FullState(
-            pos: fullState.pos,
-            direction: Direction.allDirections.next(fullState.direction),
-
-            goal: fullState.goal,
-            cost: fullState.cost + 1000),
-          FullState(
-            pos: fullState.pos,
-            direction: Direction.allDirections.prev(fullState.direction),
-
-            goal: fullState.goal,
-            cost: fullState.cost + 1000),
-        ].filter({ newFullState in
-          maze.map[newFullState.pos] && !closedList.contains(newFullState)
-        }))
-    }
-
-    return closedList.first {
+    return solveMazeGetClosedList(maze).first {
       $0.pos == maze.endPos
     }!.cost
   }
@@ -149,46 +95,11 @@ public struct Solution: Day {
   public static func solvePart2(_ input: String) async -> Int {
     let maze: Maze = parseMaze(input)
 
-    var closedList = Set<FullState>([])
-    var openList = Heap<FullState>([
-      FullState(
-        pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
-    ])
+    let closedList = solveMazeGetClosedList(maze)
 
-    while let fullState = openList.popMin() {
-      if false {
-        for y in 0..<maze.map.height {
-          for x in 0..<maze.map.width {
-            let pos = Position(x, y)
-            if pos == fullState.pos {
-              switch fullState.direction {
-              case Direction(1, 0): print(">", terminator: "")
-              case Direction(-1, 0): print("<", terminator: "")
-              case Direction(0, -1): print("^", terminator: "")
-              case Direction(0, 1): print("v", terminator: "")
-              default: print("?", terminator: "")
-              }
-            } else {
-              print(maze.map[pos] ? " " : "#", terminator: "")
-            }
-          }
-          print()
-        }
-      }
-
-      closedList.insert(fullState)
-      if fullState.pos == fullState.goal {
-        break
-      }
-
-      openList.insert(
-        contentsOf: getNextStates(fullState).filter({ newFullState in
-          maze.map[newFullState.pos] && !closedList.contains(newFullState)
-        }))
-    }
-
+    // Backtrack from goal to start, finding all optimal paths
     let endState = closedList.first { $0.pos == maze.endPos }!
-    let startState = FullState(
+    let startState = State(
       pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
 
     var backtrackedStates = Set([
@@ -210,21 +121,41 @@ public struct Solution: Day {
   }
 }
 
-func getNextStates(_ fullState: FullState) -> [FullState] {
+func solveMazeGetClosedList(_ maze: Maze) -> Set<State> {
+  var closedList = Set<State>([])
+  var openList = Heap<State>([
+    State(
+      pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
+  ])
+
+  while let state = openList.popMin() {
+    closedList.insert(state)
+    if state.pos == state.goal {
+      break
+    }
+
+    openList.insert(
+      contentsOf: getNextStates(state).filter({ maze.map[$0.pos] && !closedList.contains($0) }))
+  }
+
+  return closedList
+}
+
+func getNextStates(_ fullState: State) -> [State] {
   [
-    FullState(
+    State(
       pos: fullState.pos + fullState.direction,
       direction: fullState.direction,
 
       goal: fullState.goal,
       cost: fullState.cost + 1),
-    FullState(
+    State(
       pos: fullState.pos,
       direction: Direction.allDirections.next(fullState.direction),
 
       goal: fullState.goal,
       cost: fullState.cost + 1000),
-    FullState(
+    State(
       pos: fullState.pos,
       direction: Direction.allDirections.prev(fullState.direction),
 
@@ -233,21 +164,21 @@ func getNextStates(_ fullState: FullState) -> [FullState] {
   ]
 }
 
-func getPrevStates(_ fullState: FullState) -> [FullState] {
+func getPrevStates(_ fullState: State) -> [State] {
   [
-    FullState(
+    State(
       pos: fullState.pos - fullState.direction,
       direction: fullState.direction,
 
       goal: fullState.goal,
       cost: fullState.cost - 1),
-    FullState(
+    State(
       pos: fullState.pos,
       direction: Direction.allDirections.next(fullState.direction),
 
       goal: fullState.goal,
       cost: fullState.cost - 1000),
-    FullState(
+    State(
       pos: fullState.pos,
       direction: Direction.allDirections.prev(fullState.direction),
 
