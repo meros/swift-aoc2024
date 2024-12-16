@@ -32,7 +32,7 @@ func parseMaze(_ input: String) -> Maze {
 
 struct State: Comparable, Hashable, Equatable {
   static func < (lhs: State, rhs: State) -> Bool {
-    lhs.heuristic() < rhs.heuristic()
+    return lhs.heuristicValue < rhs.heuristicValue
   }
 
   func hash(into hasher: inout Hasher) {
@@ -45,29 +45,24 @@ struct State: Comparable, Hashable, Equatable {
       lhs.pos == rhs.pos && lhs.direction == rhs.direction
   }
 
-  private func heuristic() -> Int {
+  static private func heuristic(goal: Position, pos: Position, cost: Int) -> Int {
     let manhattanDistance = abs(goal.x - pos.x) + abs(goal.y - pos.y)
 
     let generalDirectionToGoal = Direction(
       (goal.x - pos.x).signum(), (goal.y - pos.y).signum())
 
-    var turns = 0
-    // Diagonal?
-    if generalDirectionToGoal.dx != 0 && generalDirectionToGoal.dy != 0 {
-      // Need to turn once to get there
-      turns += 1
-      // Might need to turn once to get going
-      turns +=
-        (direction == Direction(0, generalDirectionToGoal.dy)
-          || direction == Direction(generalDirectionToGoal.dx, 0)) ? 0 : 1
-    } else {
-      // 180 needed to get going?
-      turns += (direction == generalDirectionToGoal * -1) ? 2 : 0
-      // 90 degrees needed to get going?
-      turns += abs(direction.dx) == abs(generalDirectionToGoal.dy) ? 1 : 0
-    }
+    let turns = (generalDirectionToGoal.dx != 0 && generalDirectionToGoal.dy != 0) ? 1 : 0
 
     return manhattanDistance + turns * 1000 + cost
+  }
+
+  init(pos: Position, direction: Direction, goal: Position, cost: Int) {
+    self.pos = pos
+    self.direction = direction
+    self.goal = goal
+    self.cost = cost
+
+    self.heuristicValue = State.heuristic(goal: goal, pos: pos, cost: cost)
   }
 
   // Hashed state
@@ -77,6 +72,9 @@ struct State: Comparable, Hashable, Equatable {
   // Full state
   let goal: Position
   let cost: Int
+
+  // Calculated value 
+  let heuristicValue: Int
 }
 
 public struct Solution: Day {
@@ -102,22 +100,29 @@ public struct Solution: Day {
     let startState = State(
       pos: maze.startPos, direction: Direction(1, 0), goal: maze.endPos, cost: 0)
 
-    var backtrackedStates = Set([
+    var openBacktrackStates = Set([
       endState
     ])
+    var closedBacktrackState = Set<State>([])
 
-    while !backtrackedStates.contains(startState) {
-      let newBacktrackedStates = backtrackedStates.flatMap {
-        getPrevStates($0).filter {
-          guard let index = closedList.firstIndex(of: $0) else { return false }
-          return closedList[index].cost == $0.cost
-        }
+    while let backtrackState = openBacktrackStates.popFirst() {
+      closedBacktrackState.insert(backtrackState)
+      if backtrackState == startState {
+        continue
       }
 
-      backtrackedStates.formUnion(newBacktrackedStates)
+      openBacktrackStates.formUnion(
+        getPrevStates(backtrackState).filter {
+          if closedBacktrackState.contains($0) {
+            return false
+          }
+
+          guard let index = closedList.firstIndex(of: $0) else { return false }
+          return closedList[index].cost == $0.cost
+        })
     }
 
-    return Set(backtrackedStates.map { $0.pos }).count
+    return Set(closedBacktrackState.map { $0.pos }).count
   }
 }
 
@@ -151,13 +156,13 @@ func getNextStates(_ fullState: State) -> [State] {
       cost: fullState.cost + 1),
     State(
       pos: fullState.pos,
-      direction: Direction.allDirections.next(fullState.direction),
+      direction: fullState.direction.rotateRight(),
 
       goal: fullState.goal,
       cost: fullState.cost + 1000),
     State(
       pos: fullState.pos,
-      direction: Direction.allDirections.prev(fullState.direction),
+      direction: fullState.direction.rotateLeft(),
 
       goal: fullState.goal,
       cost: fullState.cost + 1000),
@@ -174,13 +179,13 @@ func getPrevStates(_ fullState: State) -> [State] {
       cost: fullState.cost - 1),
     State(
       pos: fullState.pos,
-      direction: Direction.allDirections.next(fullState.direction),
+      direction: fullState.direction.rotateRight(),
 
       goal: fullState.goal,
       cost: fullState.cost - 1000),
     State(
       pos: fullState.pos,
-      direction: Direction.allDirections.prev(fullState.direction),
+      direction: fullState.direction.rotateLeft(),
 
       goal: fullState.goal,
       cost: fullState.cost - 1000),

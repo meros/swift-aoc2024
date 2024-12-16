@@ -41,7 +41,7 @@ struct PositionWithDirection: Hashable {
 
   mutating func backUpAndTurn() {
     position = position - direction
-    direction = Direction.allDirections.next(direction)
+    direction = direction.rotateRight()
   }
 }
 

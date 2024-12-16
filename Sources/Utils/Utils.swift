@@ -167,35 +167,6 @@ public struct Grid<T>: Sequence {
   }
 }
 
-extension BidirectionalCollection where Element == Direction {
-  public func next(_ direction: Direction) -> Direction {
-    let itemIndex = self.firstIndex(of: direction)
-    if let itemIndex = itemIndex {
-      let nextIndex = index(after: itemIndex)
-      if nextIndex == endIndex {
-        return first ?? direction
-      }
-
-      return self[nextIndex]
-    }
-
-    return direction
-  }
-
-  public func prev(_ direction: Direction) -> Direction {
-    let itemIndex = self.firstIndex(of: direction)
-    if let itemIndex = itemIndex {
-      if itemIndex == startIndex {
-        return last ?? direction
-      }
-
-      return self[index(before: itemIndex)]
-    }
-
-    return direction
-  }
-}
-
 public struct Direction: Hashable {
   public static let up = Direction(0, -1)
   public static let down = Direction(0, 1)
@@ -210,6 +181,14 @@ public struct Direction: Hashable {
   }
 
   public static let allDirections: [Direction] = [.up, .right, .down, .left]
+
+  public func rotateRight() -> Direction {
+    Direction(dy, -dx)
+  }
+
+  public func rotateLeft() -> Direction {
+    Direction(-dy, dx)
+  }
 
   public static func * (lhs: Direction, rhs: Int) -> Direction {
     return Direction(lhs.dx * rhs, lhs.dy * rhs)

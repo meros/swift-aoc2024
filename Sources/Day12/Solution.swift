@@ -50,7 +50,7 @@ func countFenceSides(_ region: Set<Position>, mergeContinousSides: Bool = false)
 
   return allFenceSegments.filter {
     !allFenceSegments.contains(
-      FenceSegment($0.position + directions.next($0.direction), $0.direction))
+      FenceSegment($0.position + $0.direction.rotateRight(), $0.direction))
   }.count
 }
 
