@@ -4,7 +4,7 @@ import Utils
 public struct Solution: Day {
   public static var facitPart1: Int = 0
 
-  public static var facitPart2: Int = 258394985014171
+  public static var facitPart2: Int = 258_394_985_014_171
 
   public static var onlySolveExamples: Bool {
     return false
@@ -22,9 +22,7 @@ public struct Solution: Day {
 
   public static func solvePart2(_ input: String) async -> Int {
     let machine = parseMachine(input)
-    let oldDesired = [7, 5, 5, 3, 0]
-    let oldI = 0b1110_10110000
-    return solveRecursive(machine, oldDesired, oldI) ?? 0
+    return solveRecursive(machine, machine.instructions)
   }
 }
 
@@ -48,7 +46,7 @@ func parseMachine(_ input: String) -> Machine {
     instructions: instructions)
 }
 
-func run(_ machine: Machine, _ desired: [Int]? = nil) -> [Int] {
+func run(_ machine: Machine, earlyExitDesired: [Int]? = nil) -> [Int] {
   var programCounter = 0
   var output = [Int]()
 
@@ -102,7 +100,7 @@ func run(_ machine: Machine, _ desired: [Int]? = nil) -> [Int] {
       b ^= c
     case 5:
       // Check if we should exit early
-      if let desired = desired, desired[output.count] != comboop % 8 {
+      if let desired = earlyExitDesired, desired[output.count] != comboop % 8 {
         return output
       }
 
@@ -112,7 +110,7 @@ func run(_ machine: Machine, _ desired: [Int]? = nil) -> [Int] {
       //The bdv instruction (opcode 6) works exactly like the adv instruction except that the result is stored in the B register. (The numerator is still read from the A register.)
       let divisor = Int(pow(2, Double(comboop)))
       b = a / divisor
-     case 7:
+    case 7:
       // The cdv instruction (opcode 7) works exactly like the adv instruction except that the result is stored in the C register. (The numerator is still read from the A register.)
       let divisor = Int(pow(2, Double(comboop)))
       c = a / divisor
@@ -128,29 +126,26 @@ func run(_ machine: Machine, _ desired: [Int]? = nil) -> [Int] {
   return output
 }
 
-func solveRecursive(_ originalMachine: Machine, _ desired: [Int], _ partialSolution: Int) -> Int? {
-  for potentialSolution in (partialSolution << 3)..<(partialSolution << 3 + 7) {
-    let machine = Machine(
-      a: potentialSolution, b: originalMachine.b, c: originalMachine.c,
-      instructions: originalMachine.instructions)
+func solveRecursive(_ originalMachine: Machine, _ desired: [Int]) -> Int {
+  // Nothing to solve
+  if desired.isEmpty {
+    return 0
+  }
 
-    if run(machine, Array(desired)) == desired {
-      if Array(desired) == machine.instructions {
-        return potentialSolution
-      }
-
-      let nextDesired = 
-          Array(machine.instructions[
-            machine.instructions.endIndex - (desired.count + 1)..<machine.instructions.endIndex])
-      if let completeSolution = solveRecursive(
-        originalMachine,
-        nextDesired,
-        potentialSolution)
-      {
-        return completeSolution
-      }
+  // Solve the first part of the desired output
+  let partialSolution = solveRecursive(originalMachine, Array(desired[1..<desired.endIndex]))
+  for potentialSolution in (partialSolution << 3)...Int.max {
+    if run(
+      Machine(
+        a: potentialSolution,
+        b: originalMachine.b,
+        c: originalMachine.c,
+        instructions: originalMachine.instructions), 
+        earlyExitDesired: desired) == desired
+    {
+      return potentialSolution
     }
   }
 
-  return nil
+  return 0
 }
