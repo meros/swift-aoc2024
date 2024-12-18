@@ -10,11 +10,10 @@ struct MemoryState: Comparable {
     lhs.heuristicCost < rhs.heuristicCost
   }
 
-  init(position: Position, exit: Position, steps: Int, backtrack: Position? = nil) {
+  init(position: Position, exit: Position, steps: Int) {
     self.position = position
     self.exit = exit
     self.steps = steps
-    self.backtrack = backtrack
     self.heuristicCost = abs(exit.x - position.x) + abs(exit.y - position.y) + steps
   }
 
@@ -22,7 +21,6 @@ struct MemoryState: Comparable {
   let exit: Position
   let steps: Int
   let heuristicCost: Int
-  let backtrack: Position?
 }
 
 public struct Solution: Day {
@@ -35,31 +33,32 @@ public struct Solution: Day {
   public static var facitPart2String: String = "22,50"
 
   public static func solvePart1(_ input: String) async -> Int {
-    let corruptedBytes = Array(parseCorruptedBytes(input)[0..<1024])
+    let corruptedBytes = Set(parseCorruptedBytes(input)[0..<1024])
 
-    return findSafePath(Set(corruptedBytes))!.last!.steps
+    return findSafePath(corruptedBytes)!
   }
 
   public static func solvePart2String(_ input: String) async -> String {
     let allCorruptedPositions = parseCorruptedBytes(input)
 
-    var upper = allCorruptedPositions.count
-    var lower = 1024
-    var firstBlockingIndex = upper
+    var upperIndex = allCorruptedPositions.count - 1
+    var lowerIndex = 1023
+    var firstBlockingIndex = upperIndex
 
-    while lower < upper {
-      let index = (upper + lower) / 2
+    while lowerIndex < upperIndex {
+      let index = (upperIndex + lowerIndex) / 2
       let corruptedPositions = Set(allCorruptedPositions[0...index])
-      
-      if findSafePath(corruptedPositions)  != nil{
-        lower = index + 1        
+
+      if findSafePath(corruptedPositions) != nil {
+        lowerIndex = index + 1
       } else {
         firstBlockingIndex = index
-        upper = index
+        upperIndex = index
       }
     }
 
     let firstBlockingByte = allCorruptedPositions[firstBlockingIndex]
+
     return "\(firstBlockingByte.x),\(firstBlockingByte.y)"
   }
 }
@@ -70,7 +69,7 @@ private func parseCorruptedBytes(_ input: String) -> [Position] {
   }
 }
 
-func findSafePath(_ corruptedBytes: Set<Position>) -> [MemoryState]? {
+func findSafePath(_ corruptedBytes: Set<Position>) -> Int? {
   let exit = Position(memoryWidth - 1, memoryHeight - 1)
 
   var visitedPositions: [Position: MemoryState] = [:]
@@ -78,13 +77,14 @@ func findSafePath(_ corruptedBytes: Set<Position>) -> [MemoryState]? {
 
   while let current = pathQueue.popMin() {
     visitedPositions[current.position] = current
-    if current.position == exit { break }
+    if current.position == exit {
+      return current.steps
+    }
 
     pathQueue.insert(
       contentsOf: Direction.allDirections.map {
         MemoryState(
-          position: current.position + $0, exit: exit, steps: current.steps + 1,
-          backtrack: current.position)
+          position: current.position + $0, exit: exit, steps: current.steps + 1)
       }.filter {
         $0.position.x >= 0 && $0.position.x < memoryWidth && $0.position.y >= 0
           && $0.position.y < memoryHeight && visitedPositions.index(forKey: $0.position) == nil
@@ -93,11 +93,5 @@ func findSafePath(_ corruptedBytes: Set<Position>) -> [MemoryState]? {
     )
   }
 
-  guard var state = visitedPositions[exit] else { return nil }
-  var result = [state]
-  while let backtrack = state.backtrack {
-    state = visitedPositions[backtrack]!
-    result.insert(state, at: 0)
-  }
-  return result
+  return nil
 }
