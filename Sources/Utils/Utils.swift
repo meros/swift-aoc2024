@@ -3,14 +3,50 @@ import Foundation
 public protocol Day {
   static func solvePart1(_ input: String) async -> Int
   static func solvePart2(_ input: String) async -> Int
+  static func solvePart1String(_ input: String) async -> String
+  static func solvePart2String(_ input: String) async -> String
   static var onlySolveExamples: Bool { get }
   static var facitPart1: Int { get }
   static var facitPart2: Int { get }
+  static var facitPart1String: String { get }
+  static var facitPart2String: String { get }
 }
 
 extension Day {
   public static var onlySolveExamples: Bool {
     return false
+  }
+
+  public static func solvePart1(_ input: String) async -> Int {
+    return 0
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+    return 0
+  }
+
+  public static func solvePart1String(_ input: String) async -> String {
+    return String(await solvePart1(input))
+  }
+
+  public static func solvePart2String(_ input: String) async -> String {
+    return String(await solvePart2(input))
+  }
+
+  public static var facitPart1: Int {
+    return 0
+  }
+
+  public static var facitPart2: Int {
+    return 0
+  }
+
+  public static var facitPart1String: String {
+    return String(facitPart1)
+  }
+
+  public static var facitPart2String: String {
+    return String(facitPart2)
   }
 }
 

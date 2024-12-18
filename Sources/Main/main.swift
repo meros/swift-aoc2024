@@ -100,8 +100,8 @@ func runDay(_ day: Int) async {
     if let input = input {
       print("🎄 Solutions for Day \(day):")
       let startPart1 = Date()
-      let solutionPart1 = await unwrappedDayImplementation.solvePart1(input)
-      let facitPart1 = unwrappedDayImplementation.facitPart1
+      let solutionPart1 = await unwrappedDayImplementation.solvePart1String(input)
+      let facitPart1 = unwrappedDayImplementation.facitPart1String
       let endPart1 = Date()
       let durationPart1 = endPart1.timeIntervalSince(startPart1)
       print(
@@ -109,8 +109,8 @@ func runDay(_ day: Int) async {
       )
 
       let startPart2 = Date()
-      let solutionPart2 = await unwrappedDayImplementation.solvePart2(input)
-      let facitPart2 = unwrappedDayImplementation.facitPart2
+      let solutionPart2 = await unwrappedDayImplementation.solvePart2String(input)
+      let facitPart2 = unwrappedDayImplementation.facitPart2String
       let endPart2 = Date()
       let durationPart2 = endPart2.timeIntervalSince(startPart2)
       print(

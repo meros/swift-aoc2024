@@ -2,7 +2,7 @@ import Foundation
 import Utils
 
 public struct Solution: Day {
-  public static var facitPart1: Int = 0
+  public static var facitPart1String = "2,1,4,0,7,4,0,2,3"
 
   public static var facitPart2: Int = 258_394_985_014_171
 
@@ -10,14 +10,12 @@ public struct Solution: Day {
     return false
   }
 
-  public static func solvePart1(_ input: String) async -> Int {
+  public static func solvePart1String(_ input: String) async -> String {
     let machine = parseMachine(input)
 
     let output = run(machine)
 
-    // Convert to string and join with ,
-    print(output.map { String($0) }.joined(separator: ","), "expected: 2,1,4,0,7,4,0,2,3")
-    return 0
+    return output.map { String($0) }.joined(separator: ",")
   }
 
   public static func solvePart2(_ input: String) async -> Int {
