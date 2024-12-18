@@ -9,43 +9,54 @@ public protocol Graph {
 }
 
 private struct PathNode<State, Cost: Comparable>: Comparable {
-  let cost: Cost
+  let gScore: Cost  // Actual cost to reach this node
+  let fScore: Cost  // Priority score (g + h) for heap ordering
   let state: State
 
   static func < (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
-    lhs.cost < rhs.cost
+    lhs.fScore < rhs.fScore
   }
 
   static func == (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
-    lhs.cost == rhs.cost
+    lhs.fScore == rhs.fScore
   }
 }
+
 extension Graph {
   public func shortestPath(
     from start: State,
     to goal: State
   ) -> (cost: Cost?, visited: Set<State>) {
-    typealias State = Self.State
-    typealias Cost = Self.Cost
-
     var frontier = Heap<PathNode<State, Cost>>()
     var visited = Set<State>()
 
-    frontier.insert(PathNode(cost: 0, state: start))
+    let startNode = PathNode(
+      gScore: 0,
+      fScore: heuristic(from: start, to: goal),
+      state: start
+    )
+    frontier.insert(startNode)
 
     while let current = frontier.popMin() {
+      if current.state == goal {
+        return (current.gScore, visited)
+      }
+
       if visited.contains(current.state) {
         continue
       }
       visited.insert(current.state)
 
-      if current.state == goal {
-        return (current.cost, visited)
-      }
-
       for (neighbor, edgeCost) in neighbors(of: current.state) {
-        let priority = current.cost + edgeCost + heuristic(from: neighbor, to: goal)
-        frontier.insert(PathNode(cost: priority, state: neighbor))
+        let newGScore = current.gScore + edgeCost
+        let newFScore = newGScore + heuristic(from: neighbor, to: goal)
+
+        frontier.insert(
+          PathNode(
+            gScore: newGScore,
+            fScore: newFScore,
+            state: neighbor
+          ))
       }
     }
 
