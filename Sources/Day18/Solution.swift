@@ -42,26 +42,25 @@ public struct Solution: Day {
 
   public static func solvePart2String(_ input: String) async -> String {
     let allCorruptedPositions = parseCorruptedBytes(input)
-    var oldSafePath: Set<Position>?
-    for i in 1..<allCorruptedPositions.count {
-      let corruptedPositions = Array(allCorruptedPositions[0..<i])
-      if let onOldSafePath = oldSafePath?.contains(corruptedPositions.last!),
-        !onOldSafePath
-      {
-        continue
-      }
 
-      guard let safePath = findSafePath(Set(corruptedPositions)) else {
-        let lastPosition = corruptedPositions.last!
-        return "\(lastPosition.x),\(lastPosition.y)"
-      }
+    var upper = allCorruptedPositions.count
+    var lower = 1024
+    var firstBlockingIndex = upper
 
-      oldSafePath = Set(
-        safePath.map {
-          $0.position
-        })
+    while lower < upper {
+      let index = (upper + lower) / 2
+      let corruptedPositions = Set(allCorruptedPositions[0...index])
+      
+      if findSafePath(corruptedPositions)  != nil{
+        lower = index + 1        
+      } else {
+        firstBlockingIndex = index
+        upper = index
+      }
     }
-    return ""
+
+    let firstBlockingByte = allCorruptedPositions[firstBlockingIndex]
+    return "\(firstBlockingByte.x),\(firstBlockingByte.y)"
   }
 }
 
