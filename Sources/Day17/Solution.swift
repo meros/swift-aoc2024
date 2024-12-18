@@ -13,14 +13,15 @@ public struct Solution: Day {
   public static func solvePart1String(_ input: String) async -> String {
     let machine = parseMachine(input)
 
-    let output = run(machine)
+    let output = executeProgram(machine)
 
     return output.map { String($0) }.joined(separator: ",")
   }
 
   public static func solvePart2(_ input: String) async -> Int {
     let machine = parseMachine(input)
-    return solveRecursive(machine, machine.instructions)
+
+    return findInitialRegisterValue(machine, machine.instructions)
   }
 }
 
@@ -29,6 +30,10 @@ struct Machine {
   let b: Int
   let c: Int
   let instructions: [Int]
+
+  func withA(_ a: Int) -> Machine {
+    return Machine(a: a, b: self.b, c: self.c, instructions: self.instructions)
+  }
 }
 
 func parseMachine(_ input: String) -> Machine {
@@ -44,7 +49,7 @@ func parseMachine(_ input: String) -> Machine {
     instructions: instructions)
 }
 
-func run(_ machine: Machine, earlyExitDesired: [Int]? = nil) -> [Int] {
+func executeProgram(_ machine: Machine, expectedOutput: [Int]? = nil) -> [Int] {
   var programCounter = 0
   var output = [Int]()
 
@@ -98,7 +103,7 @@ func run(_ machine: Machine, earlyExitDesired: [Int]? = nil) -> [Int] {
       b ^= c
     case 5:
       // Check if we should exit early
-      if let desired = earlyExitDesired, desired[output.count] != comboop % 8 {
+      if let desired = expectedOutput, desired[output.count] != comboop % 8 {
         return output
       }
 
@@ -124,24 +129,19 @@ func run(_ machine: Machine, earlyExitDesired: [Int]? = nil) -> [Int] {
   return output
 }
 
-func solveRecursive(_ originalMachine: Machine, _ desired: [Int]) -> Int {
-  // Nothing to solve
-  if desired.isEmpty {
+func findInitialRegisterValue(_ machine: Machine, _ targetOutput: [Int]) -> Int {
+  if targetOutput.isEmpty {
     return 0
   }
 
-  // Solve the first part of the desired output
-  let partialSolution = solveRecursive(originalMachine, Array(desired[1..<desired.endIndex]))
-  for potentialSolution in (partialSolution << 3)...Int.max {
-    if run(
-      Machine(
-        a: potentialSolution,
-        b: originalMachine.b,
-        c: originalMachine.c,
-        instructions: originalMachine.instructions), 
-        earlyExitDesired: desired) == desired
-    {
-      return potentialSolution
+  let partialValue = findInitialRegisterValue(
+    machine, Array(targetOutput[1..<targetOutput.endIndex]))
+  for candidateValue in (partialValue << 3)...Int.max {
+    if executeProgram(
+      machine.withA(candidateValue),
+      expectedOutput: targetOutput
+    ) == targetOutput {
+      return candidateValue
     }
   }
 
