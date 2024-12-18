@@ -33,7 +33,10 @@ let package = Package(
   ],
   targets: [
     .target(
-      name: "Utils"
+      name: "Utils",
+      dependencies: [
+        .product(name: "Collections", package: "swift-collections")
+      ]
     ),
     .executableTarget(
       name: "Main",
