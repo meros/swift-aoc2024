@@ -1,33 +1,44 @@
-import Collections
-
 public protocol Graph {
   associatedtype State: Hashable
   associatedtype Cost: Comparable & Numeric
 
-  func neighbors(of state: State) -> [(State, Cost)]
+  func neighbors(of state: State, each: (_ neighbor: State, _ edgeCost: Cost) -> Void)
   func heuristic(from state: State, to goal: State) -> Cost
 }
 
-private struct PathNode<State, Cost: Comparable>: Comparable {
+public struct PathNode<State, Cost: Comparable>: Comparable {
+  @usableFromInline
   let gScore: Cost  // Actual cost to reach this node
+  @usableFromInline
   let fScore: Cost  // Priority score (g + h) for heap ordering
+  @usableFromInline
   let state: State
 
-  static func < (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
+  @usableFromInline
+  init(gScore: Cost, fScore: Cost, state: State) {
+    self.gScore = gScore
+    self.fScore = fScore
+    self.state = state
+  }
+
+  @inlinable
+  public static func < (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
     lhs.fScore < rhs.fScore
   }
 
-  static func == (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
+  @inlinable
+  public static func == (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
     lhs.fScore == rhs.fScore
   }
 }
 
 extension Graph {
+  @inlinable
   public func shortestPath(
     from start: State,
     to goal: State
   ) -> (cost: Cost?, visited: Set<State>) {
-    var frontier = Heap<PathNode<State, Cost>>()
+    var frontier = PriorityQueue<PathNode<State, Cost>>()
     var visited = Set<State>()
 
     let startNode = PathNode(
@@ -35,7 +46,7 @@ extension Graph {
       fScore: heuristic(from: start, to: goal),
       state: start
     )
-    frontier.insert(startNode)
+    frontier.push(startNode)
 
     while let current = frontier.popMin() {
       if current.state == goal {
@@ -47,11 +58,12 @@ extension Graph {
       }
       visited.insert(current.state)
 
-      for (neighbor, edgeCost) in neighbors(of: current.state) {
+      neighbors(of: current.state) {
+        neighbor, edgeCost in
         let newGScore = current.gScore + edgeCost
         let newFScore = newGScore + heuristic(from: neighbor, to: goal)
 
-        frontier.insert(
+        frontier.push(
           PathNode(
             gScore: newGScore,
             fScore: newFScore,
@@ -62,4 +74,43 @@ extension Graph {
 
     return (nil, visited)
   }
+}
+
+public struct PriorityQueue<Element: Comparable> {
+  @usableFromInline
+  var elements: [Element] = []
+
+  /// Check if the queue is empty.
+  @inlinable
+  var isEmpty: Bool {
+    elements.isEmpty
+  }
+
+  /// Insert a new element (constant time).
+  @inlinable
+  mutating func push(_ element: Element) {
+    elements.append(element)
+  }
+
+  /// Remove and return the smallest element (linear time).
+  @inlinable
+  mutating func popMin() -> Element? {
+    guard !elements.isEmpty else { return nil }
+    var minIndex = 0
+    for i in 1..<elements.count {
+      if elements[i] < elements[minIndex] {
+        minIndex = i
+      }
+    }
+    return elements.remove(at: minIndex)
+  }
+
+  /// Peek at the smallest element without removing (linear time).
+  @inlinable
+  func peekMin() -> Element? {
+    elements.min()
+  }
+
+  @inlinable
+  init() {}
 }

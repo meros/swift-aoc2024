@@ -11,14 +11,17 @@ private struct MemoryGraph: Graph {
 
   let corruptedBytes: Set<Position>
 
-  func neighbors(of state: Position) -> [(Position, Int)] {
+  func neighbors(of state: Position, each: (State, Cost) -> Void) {
     Direction.allDirections
-      .map { state + $0 }
-      .filter { pos in
-        pos.x >= 0 && pos.x < memoryWidth && pos.y >= 0 && pos.y < memoryHeight
+      .forEach {
+        let pos = state + $0
+
+        if pos.x >= 0 && pos.x < memoryWidth && pos.y >= 0 && pos.y < memoryHeight
           && !corruptedBytes.contains(pos)
+        {
+          each(pos, 1)
+        }
       }
-      .map { ($0, 1) }
   }
 
   func heuristic(from state: Position, to goal: Position) -> Int {
@@ -42,6 +45,7 @@ public class Solution: Day {
 
   public static func solvePart2String(_ input: String) async -> String {
     let allCorruptedPositions = parseCorruptedBytes(input)
+
     var upperIndex = allCorruptedPositions.count - 1
     var lowerIndex = 1023
     var firstBlockingIndex = upperIndex
