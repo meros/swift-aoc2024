@@ -16,6 +16,7 @@ import Day15
 import Day16
 import Day17
 import Day18
+import Day19
 import Foundation
 import Utils
 
@@ -87,6 +88,8 @@ func runDay(_ day: Int) async {
     dayImplementation = Day17.Solution.self
   case 18:
     dayImplementation = Day18.Solution.self
+  case 19:
+    dayImplementation = Day19.Solution.self
   default:
     dayImplementation = nil
   }
@@ -151,7 +154,7 @@ if let sessionFromFile = readSessionFromFile() {
 if let day = day {
   await runDay(day)
 } else {
-  for day in 1...17 {
+  for day in 1...19 {
     await runDay(day)
   }
 }
