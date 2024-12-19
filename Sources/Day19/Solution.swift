@@ -29,22 +29,15 @@ private func parseTowelInput(_ input: String) -> (Regex<AnyRegexOutput>, [String
   return (patternsRegex, designs, patterns)
 }
 
-private struct TowelArrangementKey: Hashable {
-  let remainingDesign: String
-  let availablePatterns: [String]
-}
-
-private var arrangementCache = [TowelArrangementKey: Int]()
+private var arrangementCache = [String: Int]()
 
 private func countArrangements(design: String, patterns: [String]) -> Int {
-  let key = TowelArrangementKey(remainingDesign: design, availablePatterns: patterns)
-
-  if let cached = arrangementCache[key] {
+  if let cached = arrangementCache[design] {
     return cached
   }
 
   if design.isEmpty {
-    arrangementCache[key] = 1
+    arrangementCache[design] = 1
     return 1
   }
 
@@ -59,6 +52,6 @@ private func countArrangements(design: String, patterns: [String]) -> Int {
     }
     .reduce(0, +)
 
-  arrangementCache[key] = arrangements
+  arrangementCache[design] = arrangements
   return arrangements
 }
