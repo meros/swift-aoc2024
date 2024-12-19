@@ -9,7 +9,7 @@ struct PageOrderRule: Hashable {
 typealias PageOrderRules = Set<PageOrderRule>
 typealias PageUpdates = [[Int]]
 
-public struct Solution: Day {
+public class Solution: Day {
   public static var facitPart1: Int = 5208
 
   public static var facitPart2: Int = 6732

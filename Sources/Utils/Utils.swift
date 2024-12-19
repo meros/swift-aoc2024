@@ -50,6 +50,12 @@ extension Day {
   }
 }
 
+public func readSessionFromFile() -> String? {
+  let fileURL = URL(fileURLWithPath: ".session")
+  return try? String(contentsOf: fileURL, encoding: .utf8).trimmingCharacters(
+    in: .whitespacesAndNewlines)
+}
+
 public func getInput(_ day: Int, _ session: String) async -> String? {
   do {
     let cacheURL = URL(fileURLWithPath: ".cache/day\(day).txt")

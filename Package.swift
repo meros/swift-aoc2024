@@ -2,7 +2,33 @@
 import Foundation
 import PackageDescription
 
-let days = (1...19)
+let dayRange: ClosedRange<Int> = {
+  let fileManager = FileManager.default
+  let sourcePath = "Sources"
+
+  guard let files = try? fileManager.contentsOfDirectory(atPath: sourcePath) else {
+    return 1...1  // Fallback range
+  }
+
+  let dayNumbers =
+    files.compactMap { filename -> Int? in
+      guard let dayNumber = filename.wholeMatch(of: #/Day(?<day>\d+)/#)?.output.day else {
+        return nil
+      }
+
+      return Int(dayNumber)
+    }
+
+  guard let min = dayNumbers.min(), let max = dayNumbers.max() else {
+    return 1...1  // Fallback range
+  }
+
+  print("Found days \(min) to \(max)")
+
+  return min...max
+}()
+
+let days = dayRange
 
 let package = Package(
   name: "AdventOfCode2024",

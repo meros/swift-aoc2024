@@ -26,7 +26,7 @@ private struct MemoryGraph: Graph {
   }
 }
 
-public struct Solution: Day {
+public class Solution: Day {
   public static var onlySolveExamples: Bool { false }
   public static var facitPart1: Int = 246
   public static var facitPart2String: String = "22,50"

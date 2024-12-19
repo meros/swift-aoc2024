@@ -4,7 +4,7 @@ import Utils
 
 let debugPrint = false
 
-public struct Solution: Day {
+public class Solution: Day {
   public static var facitPart1: Int = 1_465_152
 
   public static var facitPart2: Int = 1_511_259

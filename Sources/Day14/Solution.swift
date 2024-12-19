@@ -3,7 +3,7 @@ import Utils
 
 let shouldSolveExamplesOnly = false
 
-public struct Solution: Day {
+public class Solution: Day {
   public static var facitPart1: Int = 229_421_808
 
   public static var facitPart2: Int = 6577

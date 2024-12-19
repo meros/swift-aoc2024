@@ -1,7 +1,7 @@
 import Foundation
 import Utils
 
-public struct Solution: Day {
+public class Solution: Day {
   public static var facitPart1: Int = 4_998_764_814_652
 
   public static var facitPart2: Int = 37_598_910_447_546
