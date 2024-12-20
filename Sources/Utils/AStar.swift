@@ -13,12 +13,15 @@ public struct PathNode<State, Cost: Comparable>: Comparable {
   let fScore: Cost  // Priority score (g + h) for heap ordering
   @usableFromInline
   let state: State
+  @usableFromInline
+  let previous: State?
 
   @usableFromInline
-  init(gScore: Cost, fScore: Cost, state: State) {
+  init(gScore: Cost, fScore: Cost, state: State, previous: State? = nil) {
     self.gScore = gScore
     self.fScore = fScore
     self.state = state
+    self.previous = previous
   }
 
   @inlinable
@@ -37,9 +40,9 @@ extension Graph {
   public func shortestPath(
     from start: State,
     to goal: State
-  ) -> (cost: Cost?, visited: Set<State>) {
+  ) -> (cost: Cost?, visited: [State: State]) {
     var frontier = PriorityQueue<PathNode<State, Cost>>()
-    var visited = Set<State>()
+    var visited: [State: State] = [:]
 
     let startNode = PathNode(
       gScore: 0,
@@ -49,14 +52,15 @@ extension Graph {
     frontier.push(startNode)
 
     while let current = frontier.popMin() {
+      if visited.index(forKey: current.state) != nil {
+        continue
+      }
+
+      visited[current.state] = current.previous
+
       if current.state == goal {
         return (current.gScore, visited)
       }
-
-      if visited.contains(current.state) {
-        continue
-      }
-      visited.insert(current.state)
 
       neighbors(of: current.state) {
         neighbor, edgeCost in
@@ -67,7 +71,8 @@ extension Graph {
           PathNode(
             gScore: newGScore,
             fScore: newFScore,
-            state: neighbor
+            state: neighbor,
+            previous: current.state
           ))
       }
     }

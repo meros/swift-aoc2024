@@ -24,7 +24,6 @@ let dayRange: ClosedRange<Int> = {
   }
 
   print("Found days \(min) to \(max)")
-
   return min...max
 }()
 

@@ -35,6 +35,7 @@ extension Day {
   static func run(withSession session: String, withDaynum dayNum: Int) async {
     let exampleInput = getExampleInput(dayNum)
     let input = await getInput(dayNum, session)
+    print(Self.onlySolveExamples)
     if !Self.onlySolveExamples, let input = input {
       print("🎄 Solutions for Day \(dayNum):")
 
@@ -51,6 +52,8 @@ extension Day {
       print(
         "🎯 Part 2: \(solutionPart2) ⏱️ \(String(format: "%.3f", endPart2.timeIntervalSince(startPart2)))s \(solutionPart2 == facitPart2String ? "🎅" : "❌")"
       )
+
+      return
     }
 
     if let exampleInput = exampleInput {
