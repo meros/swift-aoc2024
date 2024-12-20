@@ -59,30 +59,36 @@ private func findShortcuts(_ track: RaceTrack, maxJump: Int) -> Int? {
 
   guard let baseDistance = basePath.cost else { return nil }
 
-  var pathDistances: [Position: (toStart: Int, toFinish: Int)] = [:]
+  var costToGoalGrid = Grid<Int?>(
+    Array(
+      repeating: Array(repeating: nil, count: track.grid.width), count: track.grid.height))
+
+  var startPositions = [(Position, Int)]()
 
   var current: Position? = track.finish
   var distance = 0
   while let pos = current {
-    pathDistances[pos] = (toStart: baseDistance - distance, toFinish: distance)
+    startPositions.append((pos, baseDistance - distance))
+    costToGoalGrid[pos] = distance
+
     distance += 1
     if pos == track.start { break }
     current = basePath.visited[pos]
   }
 
   var validShortcuts = 0
-  pathDistances.forEach { from, costs in
-    let mj = max(0, min(maxJump, baseDistance - costs.toStart - minimumSaving))
+  startPositions.forEach { from, startCost in
+    let mj = max(0, min(maxJump, baseDistance - startCost - minimumSaving))
     for dy in max(-mj, -from.y)...min(mj, track.grid.height - 1 - from.y) {
 
       for dx in max(
         -(mj - abs(dy)), -from.x)...min(mj - abs(dy), track.grid.width - 1 - from.x)
       {
         let to = from + Direction(dx, dy)
-        guard let targetCost = pathDistances[to]?.toFinish else { continue }
+        guard let targetCost = costToGoalGrid[to] else { continue }
 
         let jumpCost = abs(dx) + abs(dy)
-        let shortcutCost = costs.toStart + targetCost + jumpCost
+        let shortcutCost = startCost + targetCost + jumpCost
         let saved = baseDistance - shortcutCost
 
         if saved >= minimumSaving {
