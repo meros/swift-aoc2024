@@ -43,12 +43,13 @@ extension Graph {
   public func shortestPath(
     from start: State,
     to goal: State
-  ) -> (cost: Cost?, visited: [State: (edge: Edge, state: State)]) {
+  ) -> (cost: Cost, visited: [State: (edge: Edge, state: State)], getPath: () -> [(State, Edge?)])?
+  {
     var frontier = PriorityQueue<PathNode<State, Edge, Cost>>()
     var visited: [State: (edge: Edge, state: State)] = [:]
 
     guard let fStart = heuristic(from: start, to: goal) else {
-      return (nil, visited)
+      return nil
     }
 
     let startNode = PathNode<State, Edge, Cost>(
@@ -66,7 +67,7 @@ extension Graph {
       visited[current.state] = current.previous
 
       if current.state == goal {
-        return (current.gScore, visited)
+        return (current.gScore, visited, { () in self.getPath(visited, start, goal) })
       }
 
       neighbors(of: current.state) {
@@ -89,10 +90,13 @@ extension Graph {
       }
     }
 
-    return (nil, visited)
+    return nil
   }
 
-  public func getPath(_ visited: [State: (edge: Edge, state: State)], _ start: State, _ goal: State)
+  @usableFromInline
+  func getPath(
+    _ visited: [State: (edge: Edge, state: State)], _ start: State, _ goal: State
+  )
     -> [(State, Edge?)]
   {
     var current: State? = goal

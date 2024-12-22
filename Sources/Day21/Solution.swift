@@ -1,59 +1,53 @@
 import Foundation
 import Utils
 
-/** Final keypad
-Robot A:
-+---+---+---+
-| 7 | 8 | 9 |
-+---+---+---+
-| 4 | 5 | 6 |
-+---+---+---+
-| 1 | 2 | 3 |
-+---+---+---+
-    | 0 | A |
-    +---+---+
-*/
+struct CacheKey: Hashable {
+  let from: Character
+  let to: Character
+  let level: Int
+  let numericLevel: Int?
+}
 
-/**
-Robot B:
-    +---+---+
-    | ^ | A |
-+---+---+---+
-| < | v | > |
-+---+---+---+
+var costCache = [CacheKey: Int]()
 
-Robot C:
-    +---+---+
-    | ^ | A |
-+---+---+---+
-| < | v | > |
-+---+---+---+
-
-Human operator:
-Robot B:
-    +---+---+
-    | ^ | A |
-+---+---+---+
-| < | v | > |
-+---+---+---+
-*/
-
-func cost(_ from: Character, _ to: Character, level: Int) -> Int {
-  // Human operator
-  if level == 0 {
-    return 1
+func cost(_ from: Character, _ to: Character, level: Int, numericLevel: Int? = nil) -> Int? {
+  let key = CacheKey(from: from, to: to, level: level, numericLevel: numericLevel)
+  
+  if let cachedCost = costCache[key] {
+    return cachedCost
   }
 
-  let robotGraph = RobotGraph(
-    charToPosDirection, posToCharDirection, charToPosDirection, posToCharDirection, level: level - 1
-  )
+  // Human operator
+  switch level {
+  case 0:
+    return 1
+  default:
+    let solver = level == numericLevel ? RobotGraph(
+      charToPosDirection, posToCharDirection, charToPosNumeric, posToCharNumeric,
+      level: level - 1
+    ) : RobotGraph(
+      charToPosDirection, posToCharDirection, charToPosDirection, posToCharDirection,
+      level: level - 1
+    )
+    
+    guard
+      let result = solver.shortestPath(
+        from: RobotState(robotPointsAt: from, operatorPointsAt: "A", enteredSequence: ""),
+        to: RobotState(robotPointsAt: to, operatorPointsAt: "A", enteredSequence: "\(to)")
+      )
+    else {
+      return nil
+    }
 
-  let solution = robotGraph.shortestPath(
-    from: RobotState(robotPointsAt: from, operatorPointsAt: "A", enteredSequence: ""),
-    to: RobotState(robotPointsAt: to, operatorPointsAt: "A", enteredSequence: "\(to)")
-  )
+    let chars = result.getPath().compactMap { $0.1 }
 
-  return solution.cost!
+    let totalCost = zip("A" + chars.dropLast(), chars).map { (from: $0, to: $1) }.compactMap {
+      cost($0.from, $0.to, level: level - 1, numericLevel: numericLevel)
+    }.reduce(0, +)
+    
+    costCache[key] = totalCost
+    return totalCost
+  }
 }
 
 struct RobotState: Hashable {
@@ -94,51 +88,33 @@ class RobotGraph: Graph {
     }
 
     // Operator press 'A'
-    each(
-      RobotState(
-        robotPointsAt: state.robotPointsAt,
-        operatorPointsAt: "A",
-        enteredSequence: state.enteredSequence + "\(state.robotPointsAt)"
-      ), "A", cost(state.operatorPointsAt, "A", level: level))
-
-    // Operator press '>'
-    if let robotToPos = self.robotPosToChar(robotPos + Direction.right) {
+    if let cost = cost(state.operatorPointsAt, "A", level: level) {
       each(
         RobotState(
-          robotPointsAt: robotToPos,
-          operatorPointsAt: ">",
-          enteredSequence: state.enteredSequence
-        ), ">", cost(state.operatorPointsAt, ">", level: level))
+          robotPointsAt: state.robotPointsAt,
+          operatorPointsAt: "A",
+          enteredSequence: state.enteredSequence + "\(state.robotPointsAt)"
+        ), "A", cost)
     }
 
-    // Operator press '<'
-    if let robotToPos = self.robotPosToChar(robotPos + Direction.left) {
-      each(
-        RobotState(
-          robotPointsAt: robotToPos,
-          operatorPointsAt: "<",
-          enteredSequence: state.enteredSequence
-        ), "<", cost(state.operatorPointsAt, "<", level: level))
-    }
+    let directions: [(Direction, Character)] = [
+      (.right, ">"),
+      (.left, "<"),
+      (.down, "v"),
+      (.up, "^"),
+    ]
 
-    // Operator press 'v'
-    if let robotToPos = self.robotPosToChar(robotPos + Direction.down) {
-      each(
-        RobotState(
-          robotPointsAt: robotToPos,
-          operatorPointsAt: "v",
-          enteredSequence: state.enteredSequence
-        ), "v", cost(state.operatorPointsAt, "v", level: level))
-    }
-
-    // Operator press '^'
-    if let robotToPos = self.robotPosToChar(robotPos + Direction.up) {
-      each(
-        RobotState(
-          robotPointsAt: robotToPos,
-          operatorPointsAt: "^",
-          enteredSequence: state.enteredSequence
-        ), "^", cost(state.operatorPointsAt, "^", level: level))
+    for (direction, char) in directions {
+      if let robotToPos = self.robotPosToChar(robotPos + direction),
+        let cost = cost(state.operatorPointsAt, char, level: level)
+      {
+        each(
+          RobotState(
+            robotPointsAt: robotToPos,
+            operatorPointsAt: char,
+            enteredSequence: state.enteredSequence
+          ), char, cost)
+      }
     }
   }
 
@@ -162,61 +138,71 @@ class RobotGraph: Graph {
 public class Solution: Day {
   public static var onlySolveExamples: Bool = false
 
+  public static var facitPart1: Int = 163920
+
   public static func solvePart1(_ input: String) async -> Int {
     let codes = input.components(separatedBy: .newlines)
-
-    let robotGraph = RobotGraph(
-      charToPosDirection, posToCharDirection, charToNumeric, posToCharNumeric)
-
-    let robot2Graph = RobotGraph(
-      charToPosDirection, posToCharDirection, charToPosDirection, posToCharDirection)
-
-    let levels = [
-      (robotGraph, 2),
-      (robot2Graph, 1),
-      (robot2Graph, 0),
-    ]
 
     var sum = 0
 
     for code in codes {
-      let numericPart = Int(code.filter { $0.isNumber })
-      guard let numeric = numericPart else {
+      guard let numeric = Int(code.filter { $0.isNumber }) else {
         print("No numeric part found in code: \(code)")
         continue
       }
 
-      print("Solving for code: \(code), numeric: \(numeric)")
+      var codeCost = 0
 
-      var desiredSequence = code
+      for index in code.indices {
+        let robotFrom =
+          index > code.startIndex
+          ? code[code.index(before: index)] : "A"
+        let robotTo = code[index]
 
-      for (solver, level) in levels {
-        let from = RobotState(robotPointsAt: "A", operatorPointsAt: "A", enteredSequence: "")
-        let to: RobotState = RobotState(
-          robotPointsAt: "A", operatorPointsAt: "A", enteredSequence: desiredSequence)
+        guard let partialCost = cost(robotFrom, robotTo, level: 3, numericLevel: 3) else {
+          continue
+        }
 
-        solver.level = level
-
-        let result = solver.shortestPath(
-          from: from, to: to)
-
-        let partialSolution = solver.getPath(
-          result.visited, from, to
-        ).compactMap {
-          if let char = $1 {
-            return "\(char)"
-          }
-
-          return nil
-        }.joined()
-
-        print("Partial solution: \(partialSolution)")
-        desiredSequence = partialSolution
+        codeCost += partialCost
       }
 
-      let partialSum = desiredSequence.count * numeric
-      print("Partial sum: \(partialSum), count: \(desiredSequence.count), numeric: \(numeric)")
-      sum += partialSum
+      print("Partial, code cost: ", codeCost, numeric)
+
+      sum += codeCost * numeric
+    }
+
+    return sum
+  }
+
+  public static func solvePart2(_ input: String) async -> Int {
+     let codes = input.components(separatedBy: .newlines)
+
+    var sum = 0
+
+    for code in codes {
+      guard let numeric = Int(code.filter { $0.isNumber }) else {
+        print("No numeric part found in code: \(code)")
+        continue
+      }
+
+      var codeCost = 0
+
+      for index in code.indices {
+        let robotFrom =
+          index > code.startIndex
+          ? code[code.index(before: index)] : "A"
+        let robotTo = code[index]
+
+        guard let partialCost = cost(robotFrom, robotTo, level: 26, numericLevel: 26) else {
+          continue
+        }
+
+        codeCost += partialCost
+      }
+
+      print("Partial, code cost: ", codeCost, numeric)
+
+      sum += codeCost * numeric
     }
 
     return sum
@@ -252,7 +238,7 @@ func posToCharNumeric(_ pos: Position) -> Character? {
   }
 }
 
-func charToNumeric(_ char: Character) -> Position? {
+func charToPosNumeric(_ char: Character) -> Position? {
   /*
   +---+---+---+
 | 7 | 8 | 9 |

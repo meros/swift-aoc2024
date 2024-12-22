@@ -49,9 +49,11 @@ private struct ShortcutFinder: Graph {
 
 private func findShortcuts(_ track: RaceTrack, maxJump: Int) -> Int? {
   let pathFinder = ShortcutFinder(track: track.grid)
-  let basePath = pathFinder.shortestPath(from: track.start, to: track.finish)
+  guard let basePath = pathFinder.shortestPath(from: track.start, to: track.finish) else {
+    return nil
+  }
 
-  guard let baseDistance = basePath.cost else { return nil }
+  let baseDistance = basePath.cost
 
   var costToGoalGrid = Grid<Int?>(
     Array(

@@ -40,7 +40,7 @@ public class Solution: Day {
     let start = Position(0, 0)
     let goal = Position(memoryWidth - 1, memoryHeight - 1)
 
-    return graph.shortestPath(from: start, to: goal).cost ?? 0
+    return graph.shortestPath(from: start, to: goal)?.cost ?? 0
   }
 
   public static func solvePart2String(_ input: String) async -> String {
@@ -57,7 +57,7 @@ public class Solution: Day {
       let start = Position(0, 0)
       let goal = Position(memoryWidth - 1, memoryHeight - 1)
 
-      if graph.shortestPath(from: start, to: goal).cost != nil {
+      if graph.shortestPath(from: start, to: goal)?.cost != nil {
         lowerIndex = index + 1
       } else {
         firstBlockingIndex = index
