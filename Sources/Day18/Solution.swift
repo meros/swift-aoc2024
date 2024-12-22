@@ -11,7 +11,7 @@ private struct MemoryGraph: Graph {
 
   let corruptedBytes: Set<Position>
 
-  func neighbors(of state: Position, each: (State, Cost) -> Void) {
+  func neighbors(of state: Position, each: (State, Void, Cost) -> Void) {
     Direction.allDirections
       .forEach {
         let pos = state + $0
@@ -19,12 +19,12 @@ private struct MemoryGraph: Graph {
         if pos.x >= 0 && pos.x < memoryWidth && pos.y >= 0 && pos.y < memoryHeight
           && !corruptedBytes.contains(pos)
         {
-          each(pos, 1)
+          each(pos, (), 1)
         }
       }
   }
 
-  func heuristic(from state: Position, to goal: Position) -> Int {
+  func heuristic(from state: Position, to goal: Position) -> Int? {
     abs(goal.x - state.x) + abs(goal.y - state.y)
   }
 }

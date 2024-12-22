@@ -35,6 +35,7 @@ extension Day {
   static func run(withSession session: String, withDaynum dayNum: Int) async {
     let exampleInput = getExampleInput(dayNum)
     let input = await getInput(dayNum, session)
+
     print(Self.onlySolveExamples)
     if !Self.onlySolveExamples, let input = input {
       print("🎄 Solutions for Day \(dayNum):")

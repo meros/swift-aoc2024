@@ -1,12 +1,13 @@
 public protocol Graph {
   associatedtype State: Hashable
+  associatedtype Edge
   associatedtype Cost: Comparable & Numeric
 
-  func neighbors(of state: State, each: (_ neighbor: State, _ edgeCost: Cost) -> Void)
-  func heuristic(from state: State, to goal: State) -> Cost
+  func neighbors(of state: State, each: (_ neighbor: State, _ edge: Edge, _ edgeCost: Cost) -> Void)
+  func heuristic(from state: State, to goal: State) -> Cost?
 }
 
-public struct PathNode<State, Cost: Comparable>: Comparable {
+public struct PathNode<State, Edge, Cost: Comparable>: Comparable {
   @usableFromInline
   let gScore: Cost  // Actual cost to reach this node
   @usableFromInline
@@ -14,10 +15,10 @@ public struct PathNode<State, Cost: Comparable>: Comparable {
   @usableFromInline
   let state: State
   @usableFromInline
-  let previous: State?
+  let previous: (edge: Edge, state: State)?
 
   @usableFromInline
-  init(gScore: Cost, fScore: Cost, state: State, previous: State? = nil) {
+  init(gScore: Cost, fScore: Cost, state: State, previous: (edge: Edge, state: State)? = nil) {
     self.gScore = gScore
     self.fScore = fScore
     self.state = state
@@ -25,12 +26,14 @@ public struct PathNode<State, Cost: Comparable>: Comparable {
   }
 
   @inlinable
-  public static func < (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
+  public static func < (lhs: PathNode<State, Edge, Cost>, rhs: PathNode<State, Edge, Cost>) -> Bool
+  {
     lhs.fScore < rhs.fScore
   }
 
   @inlinable
-  public static func == (lhs: PathNode<State, Cost>, rhs: PathNode<State, Cost>) -> Bool {
+  public static func == (lhs: PathNode<State, Edge, Cost>, rhs: PathNode<State, Edge, Cost>) -> Bool
+  {
     lhs.fScore == rhs.fScore
   }
 }
@@ -40,13 +43,17 @@ extension Graph {
   public func shortestPath(
     from start: State,
     to goal: State
-  ) -> (cost: Cost?, visited: [State: State]) {
-    var frontier = PriorityQueue<PathNode<State, Cost>>()
-    var visited: [State: State] = [:]
+  ) -> (cost: Cost?, visited: [State: (edge: Edge, state: State)]) {
+    var frontier = PriorityQueue<PathNode<State, Edge, Cost>>()
+    var visited: [State: (edge: Edge, state: State)] = [:]
 
-    let startNode = PathNode(
+    guard let fStart = heuristic(from: start, to: goal) else {
+      return (nil, visited)
+    }
+
+    let startNode = PathNode<State, Edge, Cost>(
       gScore: 0,
-      fScore: heuristic(from: start, to: goal),
+      fScore: fStart,
       state: start
     )
     frontier.push(startNode)
@@ -63,21 +70,46 @@ extension Graph {
       }
 
       neighbors(of: current.state) {
-        neighbor, edgeCost in
+        neighbor, edge, edgeCost in
+
+        guard let hScore = heuristic(from: neighbor, to: goal) else {
+          return
+        }
+
         let newGScore = current.gScore + edgeCost
-        let newFScore = newGScore + heuristic(from: neighbor, to: goal)
+        let newFScore = newGScore + hScore
 
         frontier.push(
           PathNode(
             gScore: newGScore,
             fScore: newFScore,
             state: neighbor,
-            previous: current.state
+            previous: (edge, current.state)
           ))
       }
     }
 
     return (nil, visited)
+  }
+
+  public func getPath(_ visited: [State: (edge: Edge, state: State)], _ start: State, _ goal: State)
+    -> [(State, Edge?)]
+  {
+    var current: State? = goal
+    var backTrack: [(State, Edge?)] = []
+
+    while let pos = current {
+      if let (edge, state) = visited[pos] {
+        backTrack.append((pos, edge))
+        current = state
+
+        if state == start {
+          break
+        }
+      }
+    }
+
+    return backTrack.reversed()
   }
 }
 

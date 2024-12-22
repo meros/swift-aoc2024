@@ -19,12 +19,6 @@ public class Solution: Day {
   }
 }
 
-extension Position {
-  fileprivate func manhattanDistance(to other: Position) -> Int {
-    abs(x - other.x) + abs(y - other.y)
-  }
-}
-
 private struct RaceTrack {
   let grid: Grid<Character>
   let start: Position
@@ -37,18 +31,18 @@ private struct ShortcutFinder: Graph {
 
   let track: Grid<Character>
 
-  func neighbors(of position: Position, each: (Position, Int) -> Void) {
+  func neighbors(of position: Position, each: (Position, Void, Int) -> Void) {
     if track[position] != "#" {
       Direction.allDirections.forEach {
         let next = position + $0
         if track.inBounds(next) && track[next] != "#" {
-          each(next, 1)
+          each(next, (), 1)
         }
       }
     }
   }
 
-  func heuristic(from position: Position, to target: Position) -> Int {
+  func heuristic(from position: Position, to target: Position) -> Int? {
     position.manhattanDistance(to: target)
   }
 }
@@ -73,7 +67,7 @@ private func findShortcuts(_ track: RaceTrack, maxJump: Int) -> Int? {
 
     distance += 1
     if pos == track.start { break }
-    current = basePath.visited[pos]
+    current = basePath.visited[pos]?.state
   }
 
   var validShortcuts = 0

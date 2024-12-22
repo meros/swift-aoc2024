@@ -134,6 +134,10 @@ public struct Position: Hashable {
   public static func - (lhs: Position, rhs: Direction) -> Position {
     return Position(lhs.x - rhs.dx, lhs.y - rhs.dy)
   }
+
+  public func manhattanDistance(to other: Position) -> Int {
+    abs(x - other.x) + abs(y - other.y)
+  }
 }
 
 extension String {
