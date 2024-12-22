@@ -1,6 +1,8 @@
 import Foundation
 import Utils
 
+let maxDelta = 18
+
 public class Solution: Day {
   public static var facitPart1: Int = 20_411_980_517
 
@@ -21,39 +23,35 @@ public class Solution: Day {
       return result
     }).reduce(0, +)
   }
-
+    
   public static func solvePart2(_ input: String) -> Int {
-    var secretNumbers = parseSecretNumbers(input)
-
-    var offerChangesBySeller: [[(change: Int, offer: Int)]] = [
-      secretNumbers.map { (change: 0, offer: $0 % 10) }
-    ]
-    for _ in 1...2000 {
-      let next = secretNumbers.map(nextSecret)
-      secretNumbers = next.map { $0.secret }
-
-      offerChangesBySeller.append(next.map { (change: $0.change, offer: $0.offer) })
+    var secretNumbers = parseSecretNumbers(input).map {
+      (secret: $0, offer: $0 % 10, change: 0)
     }
 
-    var offersByFirstSequenceFound: [[Int]: [Int?]] = [:]
+    var sequencesOfFour: [Int] = Array(repeating: 0, count: secretNumbers.count)
+    var offersByFirstSequenceFound: [[Int?]] = Array(
+      repeating: Array(repeating: nil, count: secretNumbers.count), count: maxDelta * maxDelta * maxDelta * maxDelta)
 
-    for idx in (offerChangesBySeller.startIndex + 3)..<offerChangesBySeller.endIndex {
-      let sequences = offerChangesBySeller[idx - 3...idx].map { $0.map { $0.change } }.transposed()
-      let offers = offerChangesBySeller[idx].map { $0 }
+    for idx in 1...2000 {
+      secretNumbers = secretNumbers.map { nextSecret($0.secret) }
 
-      for (offset, (sequence, offer)) in zip(sequences, offers).enumerated() {
-        var oldOffers = offersByFirstSequenceFound[
-          sequence, default: Array(repeating: nil, count: sequences.count)]
+      for sellerIndex in 0..<secretNumbers.count {
+        sequencesOfFour[sellerIndex] *= maxDelta
+        sequencesOfFour[sellerIndex] %= maxDelta * maxDelta * maxDelta * maxDelta
+        sequencesOfFour[sellerIndex] += (secretNumbers[sellerIndex].change + maxDelta / 2)
 
-        oldOffers[offset] = oldOffers[offset] ?? offer.offer
-        offersByFirstSequenceFound[sequence] = oldOffers
+        if idx >= 4 {
+          let key = sequencesOfFour[sellerIndex]
+
+          offersByFirstSequenceFound[key][sellerIndex] =
+            offersByFirstSequenceFound[key][sellerIndex]
+            ?? secretNumbers[sellerIndex].offer
+        }
       }
     }
-
-    return offersByFirstSequenceFound.map {
-      sequence, offers in
-      offers.compactMap { $0 }.reduce(0, +)
-    }.max(by: <) ?? 0
+    
+    return offersByFirstSequenceFound.map { $0.compactMap { $0 }.reduce(0, +) }.max(by: <) ?? 0
   }
 }
 
@@ -67,7 +65,7 @@ func nextSecret(_ a: Int) -> (secret: Int, offer: Int, change: Int) {
   var secret = a
 
   func mixnprune(_ a: Int, _ b: Int) -> Int {
-    (a ^ b) % 16_777_216  // & 0xFFFFFF
+    (a ^ b) & 0xFFFFFF
   }
 
   secret = mixnprune(secret, secret * 64)
@@ -77,8 +75,4 @@ func nextSecret(_ a: Int) -> (secret: Int, offer: Int, change: Int) {
   let offer = secret % 10
 
   return (secret: secret, offer: offer, change: offer - oldOffer)
-}
-
-struct Key: Hashable {
-  let sequence: [Int]
 }
