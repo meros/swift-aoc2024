@@ -21,7 +21,6 @@ public class Solution: Day {
   }
 }
 
-
 // Core types
 private struct RobotState: Hashable {
   let position: Character
@@ -220,7 +219,6 @@ private func calculateCost(_ from: Character, _ to: Character, depth: Int, keypa
     return totalCost
   }
 }
-
 
 func solve(_ codes: [String], _ levels: Int) -> Int {
   var sum = 0
