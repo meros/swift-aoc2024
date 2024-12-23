@@ -23,7 +23,7 @@ public class Solution: Day {
       return result
     }).reduce(0, +)
   }
-    
+
   public static func solvePart2(_ input: String) -> Int {
     var secretNumbers = parseSecretNumbers(input).map {
       (secret: $0, offer: $0 % 10, change: 0)
@@ -31,7 +31,8 @@ public class Solution: Day {
 
     var sequencesOfFour: [Int] = Array(repeating: 0, count: secretNumbers.count)
     var offersByFirstSequenceFound: [[Int?]] = Array(
-      repeating: Array(repeating: nil, count: secretNumbers.count), count: maxDelta * maxDelta * maxDelta * maxDelta)
+      repeating: Array(repeating: nil, count: secretNumbers.count),
+      count: maxDelta * maxDelta * maxDelta * maxDelta)
 
     for idx in 1...2000 {
       secretNumbers = secretNumbers.map { nextSecret($0.secret) }
@@ -50,7 +51,7 @@ public class Solution: Day {
         }
       }
     }
-    
+
     return offersByFirstSequenceFound.map { $0.compactMap { $0 }.reduce(0, +) }.max(by: <) ?? 0
   }
 }
