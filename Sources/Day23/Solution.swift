@@ -6,6 +6,8 @@ public class Solution: Day {
 
   public static var facitPart1: Int = 1175
 
+  public static var facitPart2String: String = "bw,dr,du,ha,mm,ov,pj,qh,tz,uv,vq,wq,xw"
+
   public static func solvePart1(_ input: String) async -> Int {
     let connections = parseConnections(input)
 
@@ -68,15 +70,14 @@ public class Solution: Day {
               groupedComputer in 
               computerToComputers[groupedComputer]?.contains(connectedComputer) ?? false
             })
-        }
+          }
 
         for (idx,_) in matchingGroups {
           groups[idx].insert(connectedComputer)
-        }
+        }      
 
         // Add new mini-group
-        groups.append(contentsOf: Set(arrayLiteral: [computer, connectedComputer]))
-      
+        groups.append(contentsOf: Set(arrayLiteral: [computer, connectedComputer]))      
       }
     }
 
@@ -85,7 +86,6 @@ public class Solution: Day {
       a.count < b.count
     }?.sorted().joined(separator: ",") ?? ""
   }
-
 }
 
 typealias Computer = Substring
