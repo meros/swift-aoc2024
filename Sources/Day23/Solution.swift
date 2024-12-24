@@ -60,24 +60,25 @@ public class Solution: Day {
 
     for (computer, connectedComputers) in computerToComputers {
       connectedComputers.filter {
-        connectedComputer in 
+        connectedComputer in
         computer > connectedComputer
       }.forEach {
         connectedComputer in
         let matchingGroups = groups.enumerated().filter {
           (_, group) in
-          group.contains(computer) && group.allSatisfy({
-              groupedComputer in 
+          group.contains(computer)
+            && group.allSatisfy({
+              groupedComputer in
               computerToComputers[groupedComputer]?.contains(connectedComputer) ?? false
             })
-          }
+        }
 
-        for (idx,_) in matchingGroups {
+        for (idx, _) in matchingGroups {
           groups[idx].insert(connectedComputer)
-        }      
+        }
 
         // Add new mini-group
-        groups.append(contentsOf: Set(arrayLiteral: [computer, connectedComputer]))      
+        groups.append(contentsOf: Set(arrayLiteral: [computer, connectedComputer]))
       }
     }
 
