@@ -9,27 +9,29 @@ public class Solution: Day {
   public static func solvePart1(_ input: String) -> Int {
     let patterns = parsePatterns(input)
 
-    let matchingPairs = patterns.dropLast().enumerated().flatMap { (firstIndex, pattern1) in
-      patterns[firstIndex...].dropFirst().map { (pattern1, $0) }
-    }.filter { (pattern1, pattern2) in
-      pattern1.allSatisfy { !$0.1 || !pattern2[$0.0] }
-    }
-
-    return matchingPairs.count
+    return patterns.flatMap {
+      a -> [([Bool], [Bool])] in
+      patterns.map {
+        b in
+        (a, b)
+      }
+    }.filter {
+      (a, b) in
+      zip(a, b).allSatisfy {
+        !($0 && $1)
+      }
+    }.count / 2
   }
 }
 
-private func parsePatterns(_ input: String) -> [Grid<Bool>] {
+private func parsePatterns(_ input: String) -> [[Bool]] {
   input.split(separator: "\n\n").filter { !$0.isEmpty }.map {
-    Grid(
-      String($0).parseGrid().map {
-        $0.map {
-          switch $0 {
-          case "#": return true
-          case ".": return false
-          default: fatalError("Invalid character: \($0)")
-          }
-        }
-      })
+    $0.compactMap {
+      switch $0 {
+      case "#": true
+      case ".": false
+      default: nil
+      }
+    }
   }
 }
