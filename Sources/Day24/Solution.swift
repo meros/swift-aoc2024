@@ -73,7 +73,7 @@ private func repairCircuit(
   _ gates: [WireID: LogicGate],
   _ validSwaps: Set<WireID>
 ) -> [(WireID, WireID)]? {
-  // I am pretty sure this repair function doesn't cover all general cases. 
+  // I am pretty sure this repair function doesn't cover all general cases.
   // But it was enough to solve the problem.
 
   let actual = buildExpression(output, gates)
