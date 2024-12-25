@@ -4,15 +4,19 @@ import Utils
 public class Solution: Day {
   public static var onlySolveExamples: Bool = false
 
+  public static var facitPart1: Int = 47_666_458_872_582
+
+  public static var facitPart2String: String = "dnt,gdf,gwc,jst,mcm,z05,z15,z30"
+
   public static func solvePart1(_ input: String) async -> Int {
-    let (inputValues, operations) = parseCircuitFile(input)
+    let (signals, gates) = parseCircuit(input)
 
     var result = 0
-    for (output, _) in operations {
-      if output.hasPrefix("z"),
-        let bit = Int(String(output.dropFirst()))
+    for (wireID, _) in gates {
+      if wireID.hasPrefix("z"),
+        let bit = Int(String(wireID.dropFirst()))
       {
-        let value = solve(output, operations, inputValues)
+        let value = evaluateCircuit(wireID, gates, signals)
         result |= (value ? 1 : 0) << bit
       }
     }
@@ -21,23 +25,27 @@ public class Solution: Day {
   }
 
   public static func solvePart2String(_ input: String) async -> String {
-    var (inputValues, operations) = parseCircuitFile(input)
-    var validInputs: Set<Name> = []
+    var (_, gates) = parseCircuit(input)
+    var validInputs: Set<WireID> = []
 
-    var bit = -1
-    while true {
-      bit += 1
+    let remainderOnlyBit =
+      gates.keys
+      .filter { $0.hasPrefix("z") }
+      .compactMap { Int(String($0.dropFirst())) }
+      .max() ?? 0
 
-      let output = Name.buildFromBitAndPrefix("z", bit)
-      
-      if operations[Name.buildFromBitAndPrefix("z", bit)] == nil {
-        print ("Bit \(bit) not found, breaking")
+    for bit in 0...remainderOnlyBit {
+      let wireID = WireID.makeID("z", bit)
+
+      if gates[WireID.makeID("z", bit)] == nil {
+        print("Bit \(bit) not found, breaking")
         break
       }
 
-      let expected = buildExpected(bit: bit)
+      let expectedExpression = buildAdderCircuit(bit, remainderOnlyBit)
 
-      guard let swaps = fix(output, expected.sum, operations, inputValues, validInputs) else {
+      guard let swaps = repairCircuit(wireID, expectedExpression.sum, gates, validInputs) else {
+        print("No solution found for bit \(bit)")
         break
       }
 
@@ -46,43 +54,43 @@ public class Solution: Day {
       }
 
       for (from, to) in swaps {
-        let tmp = operations[to]
-        operations[to] = operations[from]
-        operations[from] = tmp
+        let tmp = gates[to]
+        gates[to] = gates[from]
+        gates[from] = tmp
 
         validInputs.insert(from)
         validInputs.insert(to)
       }
     }
 
-    print("Swaps: \(validInputs)")
-
-    return ""
+    return validInputs.sorted().joined(separator: ",")
   }
 }
 
-func fix(
-  _ name: Name,
-  _ expected: LogicOperation,
-  _ operations: [Name: Operation],
-  _ inputValues: [Name: Bool],
-  _ invalidSwaps: Set<Name>
-) -> [(Name, Name)]? {
-  let actual = solve2(name, operations, inputValues)
-  if expected == actual.operation {
+private func repairCircuit(
+  _ output: WireID,
+  _ expected: LogicExpression,
+  _ gates: [WireID: LogicGate],
+  _ validSwaps: Set<WireID>
+) -> [(WireID, WireID)]? {
+  // I am pretty sure this repair function doesn't cover all general cases. 
+  // But it was enough to solve the problem.
+
+  let actual = buildExpression(output, gates)
+  if expected == actual {
     return []
   }
 
   // Check if there is another operation that can be replaced
-  if let validSwapOperation = operations.first(where: {
+  if let validSwapOperation = gates.first(where: {
     key, value in
-    !invalidSwaps.contains(key) && solve2(key, operations, inputValues).operation == expected
+    !validSwaps.contains(key) && buildExpression(key, gates) == expected
   }) {
-    return [(validSwapOperation.key, name)]
+    return [(validSwapOperation.key, output)]
   }
 
-  if case LogicOperation.operation(let operands, let gate) = actual.operation,
-    case LogicOperation.operation(let expectedOperands, let expectedGate) = expected
+  if case LogicExpression.gate(let operands, let gate) = actual,
+    case LogicExpression.gate(let expectedOperands, let expectedGate) = expected
   {
     if gate != expectedGate {
       return nil
@@ -99,34 +107,35 @@ func fix(
     }
 
     return zip(invalidOperands, invalidExpectedOperands).map {
-      (invalidOperand, invalidExpectedOperand) in
+      (invalidOperand, invalidExpectedOperand) -> [(WireID, WireID)]? in
 
-      if let invalidOperationName = operations.keys.first(where: {
-        solve2($0, operations, inputValues).operation == invalidOperand
-      }) {
-        return fix(
-          invalidOperationName, invalidExpectedOperand, operations, inputValues, invalidSwaps)
-      }
+      guard
+        let invalidOperationName = gates.keys.first(where: {
+          buildExpression($0, gates) == invalidOperand
+        })
+      else { return nil }
 
-      return nil
+      return repairCircuit(invalidOperationName, invalidExpectedOperand, gates, validSwaps)
     }.compactMap { $0 }.flatMap { $0 }
   }
 
   return nil
 }
 
-func solve(_ output: Name, _ operations: [Name: Operation], _ inputs: [Name: Bool]) -> Bool {
-  if let value = inputs[output] {
+private func evaluateCircuit(
+  _ output: WireID, _ gates: [WireID: LogicGate], _ signals: [WireID: Bool]
+) -> Bool {
+  if let value = signals[output] {
     return value
   }
 
-  if let operation = operations[output] {
+  if let operation = gates[output] {
     let inputs = operation.inputs.map {
       input in
-      solve(input, operations, inputs)
+      evaluateCircuit(input, gates, signals)
     }
 
-    switch operation.operation {
+    switch operation.gate {
     case .and:
       return inputs.reduce(true) { $0 && $1 }
     case .or:
@@ -139,153 +148,119 @@ func solve(_ output: Name, _ operations: [Name: Operation], _ inputs: [Name: Boo
   return false
 }
 
-func solve2(_ output: Name, _ operations: [Name: Operation], _ inputs: [Name: Bool])
-  -> (operation: LogicOperation, involvedInputs: Set<Name>)
+private func buildExpression(_ output: WireID, _ gates: [WireID: LogicGate])
+  -> LogicExpression
 {
-  if inputs[output] != nil {
-    return (operation: .value(output), [])
-  }
+  if let operation = gates[output] {
+    let inputsValues = operation.inputs.map { buildExpression($0, gates) }
 
-  if let operation = operations[output] {
-    let inputsValues = operation.inputs.map {
-      input in
-      solve2(input, operations, inputs)
-    }
-
-    switch operation.operation {
-    case .and:
-      return (
-        operation: .operation(
-          operands: Set(inputsValues.map { $0.operation }),
-          operator: .and),
-        involvedInputs: Set((inputsValues.flatMap { $0.involvedInputs }) + [output])
-      )
-    case .or:
-      return (
-        operation: .operation(
-          operands: Set(inputsValues.map { $0.operation }),
-          operator: .or),
-        involvedInputs: Set((inputsValues.flatMap { $0.involvedInputs }) + [output])
-      )
-    case .xor:
-      return (
-        operation: .operation(
-          operands: Set(inputsValues.map { $0.operation }),
-          operator: .xor),
-        involvedInputs: Set((inputsValues.flatMap { $0.involvedInputs }) + [output])
-      )
+    return switch operation.gate {
+    case .and: .gate(inputs: Set(inputsValues), type: .and)
+    case .or: .gate(inputs: Set(inputsValues), type: .or)
+    case .xor: .gate(inputs: Set(inputsValues), type: .xor)
     }
   }
 
-  return (.error, [])
+  return .signal(output)
 }
 
-func buildExpected(bit: Int) -> (sum: LogicOperation, remainder: LogicOperation) {
+private func buildAdderCircuit(_ bit: Int, _ maxBit: Int) -> (
+  sum: LogicExpression, carry: LogicExpression
+) {
   // Simple half adder
   if bit == 0 {
     return (
-      sum: .operation(
-        operands: Set(
+      sum: .gate(
+        inputs: Set(
           [
-            Name.buildFromBitAndPrefix("x", bit),
-            Name.buildFromBitAndPrefix("y", bit),
-          ].map { .value($0) }),
-        operator: .xor),
-      remainder: .operation(
-        operands: Set(
+            WireID.makeID("x", bit),
+            WireID.makeID("y", bit),
+          ].map { .signal($0) }),
+        type: .xor),
+      carry: .gate(
+        inputs: Set(
           [
-            Name.buildFromBitAndPrefix("x", bit),
-            Name.buildFromBitAndPrefix("y", bit),
-          ].map { .value($0) }),
-        operator: .and)
+            WireID.makeID("x", bit),
+            WireID.makeID("y", bit),
+          ].map { .signal($0) }),
+        type: .and)
     )
+  } else if bit == maxBit {
+    let sum = buildAdderCircuit(bit - 1, maxBit).carry
+    return (sum: sum, carry: .signal(WireID.makeID("x", bit)))
   } else {
-    let prevRemainder = buildExpected(bit: bit - 1).remainder
-    let x = LogicOperation.value(Name.buildFromBitAndPrefix("x", bit))
-    let y = LogicOperation.value(Name.buildFromBitAndPrefix("y", bit))
+    let prevCarry = buildAdderCircuit(bit - 1, maxBit).carry
+    let x = LogicExpression.signal(WireID.makeID("x", bit))
+    let y = LogicExpression.signal(WireID.makeID("y", bit))
 
-    let haSum = LogicOperation.operation(operands: Set([x, y]), operator: .xor)
-    let sum = LogicOperation.operation(operands: Set([prevRemainder, haSum]), operator: .xor)
+    let haSum = LogicExpression.gate(inputs: Set([x, y]), type: .xor)
+    let sum = LogicExpression.gate(inputs: Set([prevCarry, haSum]), type: .xor)
 
-    let haRemainder = LogicOperation.operation(operands: Set([x, y]), operator: .and)
-    let otherRemainder = LogicOperation.operation(
-      operands: Set([prevRemainder, haSum]),
-      operator: .and
+    let haCarry = LogicExpression.gate(inputs: Set([x, y]), type: .and)
+    let otherCarry = LogicExpression.gate(
+      inputs: Set([prevCarry, haSum]),
+      type: .and
     )
-    let remainder = LogicOperation.operation(
-      operands: Set([haRemainder, otherRemainder]), operator: .or)
+    let carry = LogicExpression.gate(
+      inputs: Set([haCarry, otherCarry]), type: .or)
 
-    return (sum: sum, remainder: remainder)
+    return (sum: sum, carry: carry)
   }
 }
 
-indirect enum LogicOperation: Hashable {
-  case value(Name)
-  case operation(operands: Set<LogicOperation>, operator: LogicGate)
-  case error
+private indirect enum LogicExpression: Hashable {
+  case signal(WireID)
+  case gate(inputs: Set<LogicExpression>, type: LogicGateType)
 }
 
-extension LogicOperation: CustomStringConvertible {
-  var description: String {
-    switch self {
-    case .value(let name):
-      return "\(name)"
-    case .operation(let operands, let gate):
-      return "(\(operands.map { $0.description }.joined(separator: " \(gate) ")))"
-    case .error:
-      return "error"
-    }
-  }
-}
+typealias WireID = Substring
+typealias LogicGate = (gate: LogicGateType, inputs: Set<WireID>)
 
-typealias Operation = (operation: LogicGate, inputs: Set<Substring>)
-typealias Name = Substring
-
-extension Name {
-  static func buildFromBitAndPrefix(_ prefix: String, _ bit: Int) -> Name {
+extension WireID {
+  static func makeID(_ prefix: String, _ bit: Int) -> WireID {
     return "\(prefix)\(String(format: "%02d", bit))"
   }
 }
 
 // Define an enum for logic operations
-enum LogicGate: Substring, Hashable {
+enum LogicGateType: Substring, Hashable {
   case and = "AND"
   case or = "OR"
   case xor = "XOR"
 }
 
-func parseCircuitFile(_ fileContent: String) -> (
-  inputValues: [Name: Bool], operations: [Name: Operation]
+private func parseCircuit(_ input: String) -> (
+  signals: [WireID: Bool], gates: [WireID: LogicGate]
 ) {
   // Define the regex patterns
   let inputPattern = #/(?<key>x\d{2}|y\d{2}): (?<value>\d+)/#
   let operationPattern =
     #/(?<input1>\w{3}) (?<gate>AND|OR|XOR) (?<input2>\w{3}) -> (?<output>\w{3})/#
 
-  var inputValues: [Name: Bool] = [:]
-  var operations: [Name: Operation] = [:]
+  var signals: [WireID: Bool] = [:]
+  var gates: [WireID: LogicGate] = [:]
 
   // Parse input values
-  for match in fileContent.matches(of: inputPattern) {
+  for match in input.matches(of: inputPattern) {
     let key = match.output.key
     let value = match.output.value
 
     if let intValue = Int(value) {
-      inputValues[key] = intValue == 1
+      signals[key] = intValue == 1
     }
   }
 
   // Parse operations
-  for match in fileContent.matches(of: operationPattern) {
+  for match in input.matches(of: operationPattern) {
     let input1 = match.output.input1
     let gate = match.output.gate
     let input2 = match.output.input2
     let output = match.output.output
 
-    if let operation = LogicGate.init(rawValue: gate) {
-      operations[output] = (operation, [input1, input2])
+    if let operation = LogicGateType.init(rawValue: gate) {
+      gates[output] = (operation, [input1, input2])
     }
   }
 
-  return (inputValues, operations)
+  return (signals, gates)
 }
