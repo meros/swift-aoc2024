@@ -29,13 +29,18 @@ let package = Package(
     .package(
       url: "https://github.com/apple/swift-collections.git",
       .upToNextMinor(from: "1.1.0")  // or `.upToNextMajor
-    )
+    ),
+    .package(
+      url: "https://github.com/apple/swift-algorithms.git",
+      .upToNextMinor(from: "1.0.0")  // or `.upToNextMajor
+    ),
   ],
   targets: [
     .target(
       name: "Utils",
       dependencies: [
-        .product(name: "Collections", package: "swift-collections")
+        .product(name: "Collections", package: "swift-collections"),
+        .product(name: "Algorithms", package: "swift-algorithms"),
       ]
     ),
     .executableTarget(
@@ -49,6 +54,7 @@ let package = Package(
         dependencies: [
           "Utils",
           .product(name: "Collections", package: "swift-collections"),
+          .product(name: "Algorithms", package: "swift-algorithms"),
         ]
       )
     }
