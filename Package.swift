@@ -5,7 +5,7 @@ import PackageDescription
 let days = 1...25
 
 let package = Package(
-  name: "AdventOfCode2024",
+  name: "AdventOfCode2025",
 
   platforms: [
     .macOS(.v13)

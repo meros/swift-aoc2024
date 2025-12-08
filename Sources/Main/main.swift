@@ -77,7 +77,7 @@ let christmasTree = """
   """
 
 print("\n\(christmasTree)")
-print("🎄 ⭐️ Welcome to Advent of Code 2024! ⭐️ 🎄")
+print("🎄 ⭐️ Welcome to Advent of Code 2025! ⭐️ 🎄")
 print("🎅 Ho ho ho! Let's solve some puzzles! 🎅\n")
 
 guard let session = readSessionFromFile() else {
